@@ -8,10 +8,11 @@ steps:
     image: golang:1.22
     commands:
       - |
-        unformatted="$(gofmt -l bot.go intent.go cmd/pybot/main.go)"
+        unformatted="$(find . -type f -name '*.go' -print0 | xargs -0 gofmt -l)"
         if [ -n "$unformatted" ]; then
           printf 'Run gofmt on these files:\n%s\n' "$unformatted"
           exit 1
         fi
+      - go test ./...
       - go vet ./...
       - go build ./...

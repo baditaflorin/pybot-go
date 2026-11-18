@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0 - 2026-11-18
+
+- Replace generic rule scoring with a small, inspectable Naive Bayes intent router and a conservative query planner.
+- Add conversation-scoped typed facts with age comparison, exact arithmetic, unit conversion, and date solvers.
+- Add BM25-style local retrieval with source links for a small curated corpus, plus explicit clarification and abstention.
+- Print evidence links in the CLI and add regression coverage for core capabilities and paraphrase routing.
+- Expand the Woodpecker pipeline to format, test, vet, and build the full Go project.
+
 ## 0.2.0 - 2026-11-18
 
 - Add a CPU-only Naive Bayes intent router trained from a small built-in phrase set.

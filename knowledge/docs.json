@@ -1,0 +1,38 @@
+[
+  {
+    "id": "onion-tears",
+    "title": "Why cutting onions makes eyes water",
+    "answer": "Cutting onion cells releases a volatile sulfur compound called syn-propanethial-S-oxide. It reaches the moist surface of the eye and irritates it, which triggers tears. A sharp knife and a slower cut can reduce the spray; chilling the onion may also slow the reaction.",
+    "text": "onions onion cutting chopping tears crying eyes water sting sulfur sulphur volatile propanethial oxide aerosol droplets sharp knife slower cut chill refrigerate cold",
+    "source_title": "Cornell Chronicle: How onions make cooks cry",
+    "source_url": "https://news.cornell.edu/stories/2025/10/mist-opportunity-reveals-how-onions-make-cooks-cry",
+    "extra_sources": [
+      {"title": "UW–Madison: Why onions make us cry", "url": "https://news.wisc.edu/curiosities-why-do-onions-make-us-cry-when-we-cut-them/"}
+    ],
+    "followups": {}
+  },
+  {
+    "id": "kettle-descaling",
+    "title": "Descaling an electric kettle",
+    "answer": "Descaling directions differ by kettle model, so follow its manual. For the KRUPS Control Line model, the manufacturer describes either 0.5 L of 8° white vinegar left unheated for 1 hour, or 0.5 L of boiled water with 25 g citric acid left for 15 minutes; then empty and rinse 5–6 times. Do not assume these amounts apply to another model.",
+    "text": "kettle tea kettle electric kettle mineral deposits scale limescale limestone chalk hard water buildup descale cleaning clean vinegar citric acid model manufacturer appliance heating element",
+    "source_title": "KRUPS Control Line Electric Kettle: descaling instructions",
+    "source_url": "https://www.krupsusa.com/instructions-for-use/BREAKFAST-APPLIANCES/ELECTRIC-KETTLES/Control-Line-Electric-Kettle-BW442D50/csp/7211002020",
+    "extra_sources": [],
+    "followups": {
+      "duration": "The KRUPS instructions give two durations: 1 hour for the unheated vinegar method, or 15 minutes after adding citric acid to boiled water. Those directions are model-specific."
+    }
+  },
+  {
+    "id": "egg-safety",
+    "title": "Safe cooking temperature for egg dishes",
+    "answer": "For casseroles and other dishes containing eggs, USDA Food Safety and Inspection Service guidance says to cook to at least 160°F (71°C), checked with a food thermometer. Cooking time for a boiled egg depends on size and method; this source does not establish a universal timing.",
+    "text": "egg eggs cooking boil boiled soft hard yolk food safety safe temperature thermometer casserole dishes 160 fahrenheit celsius doneness minutes cooking time",
+    "source_title": "USDA FSIS: How do you handle and store eggs safely?",
+    "source_url": "https://ask.fsis.usda.gov/article/How-do-you-handle-and-store-eggs-safely",
+    "extra_sources": [
+      {"title": "USDA FSIS: Why use a food thermometer for eggs?", "url": "https://ask.fsis.usda.gov/article/Why-is-it-so-important-that-people-use-a-food-thermometer-when-cooking-meat-poultry-and-eggs"}
+    ],
+    "followups": {}
+  }
+]

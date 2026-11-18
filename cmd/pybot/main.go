@@ -49,7 +49,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer, stdinIsTermin
 	fs.BoolVar(&showVersion, "version", false, "print version and exit")
 	fs.Usage = func() {
 		fmt.Fprintln(stderr, "Usage: pybot [options]")
-		fmt.Fprintln(stderr, "Chat with a small rule-based bot. Piped input gets one reply per line.")
+		fmt.Fprintln(stderr, "Chat with a CPU-only hybrid assistant. Piped input gets one reply per line.")
 		fs.PrintDefaults()
 	}
 	if err := fs.Parse(args); err != nil {
@@ -91,7 +91,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer, stdinIsTermin
 func oneShot(bot *pybot.Bot, prompt string, stdout, stderr io.Writer, verbose bool) int {
 	start := time.Now()
 	response := bot.Reply(prompt)
-	if _, err := fmt.Fprintln(stdout, response.Text); err != nil {
+	if err := writeResponse(stdout, "", response); err != nil {
 		fmt.Fprintf(stderr, "pybot: write reply: %v\n", err)
 		return 1
 	}
@@ -106,7 +106,7 @@ func pipe(bot *pybot.Bot, stdin io.Reader, stdout, stderr io.Writer, verbose boo
 	for scanner.Scan() {
 		start := time.Now()
 		response := bot.Reply(strings.TrimSuffix(strings.TrimSuffix(scanner.Text(), "\n"), "\r"))
-		if _, err := fmt.Fprintln(stdout, response.Text); err != nil {
+		if err := writeResponse(stdout, "", response); err != nil {
 			fmt.Fprintf(stderr, "pybot: write reply: %v\n", err)
 			return 1
 		}
@@ -174,7 +174,7 @@ func chat(bot *pybot.Bot, first string, stdin io.Reader, stdout, stderr io.Write
 		}
 		start := time.Now()
 		response := bot.Reply(line)
-		if _, err := fmt.Fprintf(stdout, "pybot: %s\n", response.Text); err != nil {
+		if err := writeResponse(stdout, "pybot: ", response); err != nil {
 			fmt.Fprintf(stderr, "pybot: write reply: %v\n", err)
 			return 1
 		}
@@ -186,6 +186,18 @@ func chat(bot *pybot.Bot, first string, stdin io.Reader, stdout, stderr io.Write
 			return 1
 		}
 	}
+}
+
+func writeResponse(output io.Writer, prefix string, response pybot.Response) error {
+	if _, err := fmt.Fprintf(output, "%s%s\n", prefix, response.Text); err != nil {
+		return err
+	}
+	for _, source := range response.Sources {
+		if _, err := fmt.Fprintf(output, "source: %s <%s>\n", source.Title, source.URL); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func newScanner(input io.Reader) *bufio.Scanner {

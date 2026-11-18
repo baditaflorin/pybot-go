@@ -1,14 +1,22 @@
 # PyBot Go
 
-A small, standalone Go implementation inspired by [Hugging Face's PyBot](https://github.com/huggingface/pybot). It combines a tiny example-trained Naive Bayes intent router with explicit answer rules and conversation state. It does not use a language model, network service, GPU, or third-party Go package.
+PyBot Go is a small, CPU-only conversational assistant inspired by [Hugging Face's PyBot](https://github.com/huggingface/pybot). It combines a statistical intent router, typed conversation memory, exact task solvers, and source-backed local search. It does not use an LLM, GPU, network service, or third-party Go package.
 
-## Why this exists
+This is a deliberately bounded assistant, not an attempt to reproduce the upstream Python experiment or its large generated knowledge base. It is designed to answer a useful set of questions reliably and to say when it does not know.
 
-The original PyBot is an experiment in how far a large swarm of coding agents can push a rule-based chatbot. Its README reports a 26% win rate on SmolTalkBench, a benchmark where an LLM judge compares replies with reference answers. That is an interesting result for a code-generation experiment, but it is not evidence that PyBot is a dependable general-purpose assistant. A fixed collection of rules can sound fluent in cases it recognizes and still fail on basic reasoning it was never taught.
+## What it can do
 
-This Go project starts with a smaller, explicit goal: make a lightweight chatbot that handles a few useful tasks predictably, including remembering names and ages during a conversation and comparing ages with a clear explanation. It is a compact Go-native implementation, not a line-by-line translation of the upstream project's roughly 640,000 lines of Python or a port of its full knowledge base.
+- **Compare ages:** remember names and age statements for the current conversation, compare two or more people, and report the age difference.
+- **Calculate arithmetic:** evaluate numeric and supported spoken-number expressions with parentheses and standard operator precedence. Arithmetic uses exact rational values.
+- **Convert units:** convert common length, mass, volume, and temperature units, and reject incompatible or unsupported units.
+- **Work with dates:** calculate weekday/date offsets, date differences, and relative dates from today. Explicit dates use `YYYY-MM-DD`.
+- **Answer a few sourced questions:** search an embedded local corpus about onions, one named electric kettle model, and egg-dish food safety. Answers include their source links. The kettle instructions are explicitly model-specific; egg cooking time is not inferred from a food-safety temperature source.
+- **Handle conversation basics:** recognize a small set of greetings, thanks, identity questions, name questions, and short follow-ups.
+- **Abstain:** ask for missing information or return a clear fallback when no supported answer is available.
 
-## Use it
+The intent router is a small multinomial Naive Bayes classifier trained from inspectable, hand-written examples. It helps route paraphrases; it does not generate answers or establish facts. Explicit solvers perform calculations, and retrieval answers come from the bundled corpus. The classifier score is a routing signal, not a calibrated confidence value.
+
+## Try it
 
 Requires Go 1.22 or newer.
 
@@ -22,13 +30,22 @@ Ask one question and exit:
 go run ./cmd/pybot -p "Alice is 12 and Bob is 50. Who is older?"
 ```
 
-The answer identifies Bob and gives the 38-year difference. Facts also persist across piped lines:
+Or keep facts across piped messages in one process:
 
 ```sh
 printf 'Alice is 12.\nBob is 50.\nWho is older?\n' | go run ./cmd/pybot
 ```
 
-Build a binary or install the command:
+Other examples:
+
+```sh
+go run ./cmd/pybot -p "What is (18 + 6) / 3?"
+go run ./cmd/pybot -p "How many inches are in 2 meters?"
+go run ./cmd/pybot -p "What date is 30 days after 2026-11-18?"
+go run ./cmd/pybot -p "Why do onions make my eyes water?"
+```
+
+Build or install the command:
 
 ```sh
 go build -o pybot ./cmd/pybot
@@ -42,35 +59,31 @@ go install github.com/baditaflorin/pybot-go/cmd/pybot@latest
 | `-p TEXT`, `--prompt TEXT` | Answer one message and exit |
 | `-i`, `--interactive` | With `-p`, continue into an interactive conversation |
 | `-s N`, `--seed N` | Make wording choices repeatable |
-| `-v`, `--verbose` | Print the selected rule module and response time |
+| `-v`, `--verbose` | Print the selected module and response time |
 | `--version` | Print the Go implementation version |
 
-Interactive commands: `/reset` clears conversation memory, `/help` shows commands, and `/exit` quits. With input piped to stdin, PyBot prints one reply per line and keeps the same conversation memory for the duration of the process.
+Interactive commands: `/reset` clears conversation memory, `/help` shows commands, and `/exit` quits. Piped input gets one response per line while keeping the same conversation state for that process. Retrieval answers print their source links below the answer.
 
-## Current behavior
+## Architecture and boundaries
 
-- Remembers a name stated as `I'm Sam` or `my name is Sam`.
-- Remembers age statements such as `Alice is 12 years old` and answers `Who is older?` or `Who is younger?`, including the numeric difference.
-- Includes a small set of direct rules for cooking questions, greetings, and follow-ups.
-- Uses a small CPU-only Naive Bayes classifier trained from built-in examples to route familiar intents across different phrasings; deterministic rules and solvers still produce the answers. Its routing score is not calibrated and the small example set is not benchmarked yet.
-- Uses a stable score-based arbiter so more specific answers beat general conversation replies.
-- Keeps each conversation's state and random source inside one `Bot`; `Reply` and `Reset` are safe for concurrent calls.
+`Bot.Reply` routes each message through a small planner. Exact solvers handle arithmetic, unit conversion, dates, and age comparisons. The intent model is intentionally small and inspectable; it uses text features and hand-written examples rather than pretrained embeddings. Facts are typed, attributed to the message that supplied them, and scoped to one `Bot` instance. `Reset` clears them. Nothing is persisted or sent over the network.
 
-This is intentionally a small first release. It will not understand arbitrary phrasing or answer the broad range of questions supported by a large language model. Unknown questions receive an explicit fallback instead of a fabricated factual answer. The upstream Python project remains the source for the larger swarm-generated experiment and its benchmark results.
+The embedded search uses a BM25-style ranker over a few curated documents. It returns document answers and source URLs, not an open-ended generated summary. The corpus is in [`knowledge/docs.json`](knowledge/docs.json); each entry needs a source title and valid HTTP(S) source URL. The included egg source supports a safe temperature for egg dishes, not universal boiling times. The kettle answer applies only to the linked KRUPS Control Line model.
+
+This design trades broad language coverage for low resource use, reproducible calculations, inspectable routing, and explicit evidence. It still needs examples and curated material for new intents and topics. It will not handle arbitrary conversation or general knowledge like a large language model, and its fixed paraphrase checks are regression tests rather than a broad benchmark.
+
+## Develop and evaluate
+
+```sh
+gofmt -w $(find . -type f -name '*.go')
+go test ./...
+go test -race ./...
+go vet ./...
+go build ./...
+```
+
+Tests cover held-out intent paraphrases and end-to-end behavior for memory, calculations, conversions, dates, retrieval sources, abstention, and the CLI. The held-out set is small and hand-authored; passing it is a capability regression check, not evidence of general conversational accuracy.
 
 ## Attribution and license
 
-This project is an independent Go implementation inspired by Hugging Face's PyBot. The original project is available at [huggingface/pybot](https://github.com/huggingface/pybot) and is licensed under Apache-2.0. This repository is also licensed under Apache-2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE).
-
-## A path beyond fixed rules
-
-A much stronger non-LLM assistant should not be built by adding thousands of unrelated phrase checks. The next architecture can combine:
-
-1. **Language understanding:** the current baseline has text normalization and a small CPU-friendly Naive Bayes intent router. Expand it with a larger evaluated example set and entity extraction so it recognizes paraphrases and named people without making up facts.
-2. **Structured memory:** store typed facts such as `person: Alice`, `age: 12 years`, and where each fact came from. Keep facts scoped to a conversation unless the user explicitly saves them.
-3. **A query planner and solvers:** turn a question into operations over facts—compare ages, calculate totals, convert units, or reason over dates—and produce a checkable result.
-4. **Local retrieval:** search a curated, source-backed knowledge base for questions that need facts. Retrieval can return the supporting passage, while deterministic code handles calculations and comparisons.
-5. **Uncertainty handling:** ask one targeted question when a name, value, or reference is ambiguous; say when the local knowledge base has no answer.
-6. **Capability evaluation:** measure exact answer accuracy and appropriate clarification on a fixed set of realistic prompts, including paraphrases and follow-ups. A broad benchmark score alone can hide failures on simple tasks.
-
-This approach can stay CPU-only and much lighter than a language model. It improves coverage and composition while keeping answers inspectable. The trade-off is that the system still needs examples, a maintained knowledge base, and explicit support for each kind of reasoning; it will remain weaker than an LLM on open-ended questions. A useful target is high accuracy in a chosen set of tasks, rather than claiming universal conversation ability.
+This is an independent Go implementation inspired by [Hugging Face's PyBot](https://github.com/huggingface/pybot), which is licensed under Apache-2.0. This repository is also licensed under Apache-2.0; see [LICENSE](LICENSE) and [NOTICE](NOTICE).

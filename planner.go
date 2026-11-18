@@ -1,0 +1,179 @@
+package pybot
+
+import (
+	"fmt"
+	"strings"
+)
+
+const statisticalRouteThreshold = 0.55
+
+// Reply parses a message, updates conversation memory, then routes it through
+// exact solvers, source-backed local retrieval, and conservative fallbacks.
+func (b *Bot) Reply(input string) Response {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
+	text := strings.TrimSpace(input)
+	if text == "" {
+		return Response{Text: "Send me a question or a fact to work with.", Module: "conversation/empty"}
+	}
+	updates := b.memory.remember(text)
+	lower := normalizeText(text)
+	if pronoun := unresolvedAgePronoun(lower); pronoun != "" {
+		return Response{
+			Text:   fmt.Sprintf("Who do you mean by %q? Tell me the person's name so I don't attach the age to the wrong person.", pronoun),
+			Module: "memory/age", NeedsClarification: true,
+		}
+	}
+	messageIntent, intentScore := defaultIntentClassifier.classify(lower)
+	routeTrusted := intentScore >= statisticalRouteThreshold
+
+	if isAgeComparison(lower) || (messageIntent == intentAgeComparison && routeTrusted) {
+		return b.answerAgeComparison(lower)
+	}
+	if response, handled := solveUnitConversion(lower); handled {
+		return response
+	}
+	if response, handled := solveDateQuestion(lower, b.clock()); handled {
+		return response
+	}
+	if response, handled := solveArithmetic(lower); handled {
+		return response
+	}
+	if isNameQuestion(lower) || (messageIntent == intentNameQuestion && routeTrusted) {
+		if name := b.memory.name(); name != "" {
+			return Response{Text: "Your name is " + name + ".", Module: "memory/name"}
+		}
+		return Response{Text: "I don't know your name yet. What should I call you?", Module: "memory/name", NeedsClarification: true}
+	}
+	if isAgeQuestion(lower) {
+		return b.answerAgeFact(lower)
+	}
+	if updates > 0 && isStandaloneStatement(lower) {
+		return b.acknowledgeFacts()
+	}
+	if response, handled := b.answerFollowup(lower); handled {
+		return response
+	}
+	if isGreeting(lower) || (messageIntent == intentGreeting && routeTrusted) {
+		if name := b.memory.name(); name != "" {
+			return Response{Text: "Hello, " + name + "! What can I help with?", Module: "conversation/greeting"}
+		}
+		return Response{Text: "Hello! What can I help with?", Module: "conversation/greeting"}
+	}
+	if isThanks(lower) || (messageIntent == intentThanks && routeTrusted) {
+		return Response{Text: "You're welcome!", Module: "conversation/thanks"}
+	}
+	if strings.Contains(lower, "who are you") || strings.Contains(lower, "what are you") ||
+		(messageIntent == intentIdentity && routeTrusted) {
+		return Response{Text: "I'm PyBot Go: a CPU-only assistant that routes with a small statistical model, stores typed facts for this conversation, solves exact problems, and retrieves from a local knowledge base. I don't use an LLM.", Module: "conversation/identity"}
+	}
+	if strings.Contains(lower, "how are you") || (messageIntent == intentSmallTalk && routeTrusted) {
+		return Response{Text: "I'm running fine. What would you like to work out?", Module: "conversation/small-talk"}
+	}
+	if result, found := b.knowledge.Search(lower, messageIntent, routeTrusted); found {
+		if len(result.Ambiguous) > 0 {
+			return Response{
+				Text:   fmt.Sprintf("I found two likely topics: %s and %s. Which one do you mean?", result.Ambiguous[0].Title, result.Ambiguous[1].Title),
+				Module: "retrieval/clarify", NeedsClarification: true,
+			}
+		}
+		b.memory.lastKnowledgeID = result.Document.ID
+		b.memory.lastKnowledgeTurn = b.memory.turn
+		return Response{
+			Text:    result.Document.Answer,
+			Module:  "retrieval/" + result.Document.ID,
+			Sources: allSources(result.Document),
+		}
+	}
+	return Response{
+		Text:   randomFallback(b.rng),
+		Module: "conversation/unknown",
+	}
+}
+
+func normalizeText(text string) string {
+	return strings.Join(strings.Fields(normalizeIntentAliases(text)), " ")
+}
+
+func isNameQuestion(text string) bool {
+	return strings.Contains(text, "what's my name") || strings.Contains(text, "what is my name") ||
+		strings.Contains(text, "do you remember my name") || strings.Contains(text, "who am i")
+}
+
+func isAgeComparison(text string) bool {
+	comparative := strings.Contains(text, "older") || strings.Contains(text, "younger") ||
+		strings.Contains(text, "oldest") || strings.Contains(text, "youngest") ||
+		strings.Contains(text, "higher age") || strings.Contains(text, "greater age") ||
+		strings.Contains(text, "lower age") || strings.Contains(text, "compare their ages") ||
+		strings.Contains(text, "compare the ages") || strings.Contains(text, "how much older") ||
+		strings.Contains(text, "how much younger")
+	return comparative && (strings.Contains(text, "age") || strings.Contains(text, "year old") ||
+		strings.Contains(text, "years old") || strings.Contains(text, "who ") ||
+		strings.HasPrefix(text, "who's ") || strings.HasPrefix(text, "which ") ||
+		strings.HasPrefix(text, "how much older") || strings.HasPrefix(text, "how much younger"))
+}
+
+func isAgeQuestion(text string) bool {
+	return strings.Contains(text, "how old is") || strings.Contains(text, "how old are") ||
+		strings.Contains(text, "how old am i") || strings.Contains(text, "what is the age of") || strings.Contains(text, "what's the age of")
+}
+
+func isStandaloneStatement(text string) bool {
+	if strings.Contains(text, "?") {
+		return false
+	}
+	for _, prefix := range []string{"who ", "what ", "when ", "where ", "why ", "how ", "which ", "is ", "are ", "can ", "could "} {
+		if strings.HasPrefix(text, prefix) {
+			return false
+		}
+	}
+	return true
+}
+
+func (b *Bot) acknowledgeFacts() Response {
+	facts := b.memory.factsInOrder()
+	latest := make([]Fact, 0)
+	for _, fact := range facts {
+		if fact.Turn == b.memory.turn {
+			latest = append(latest, fact)
+		}
+	}
+	if len(latest) == 0 {
+		return Response{Text: "Got it.", Module: "memory/facts"}
+	}
+	fact := latest[len(latest)-1]
+	if fact.Attribute == "name" {
+		return Response{Text: "I'll remember your name as " + fact.Value + " for this conversation.", Module: "memory/name"}
+	}
+	if fact.Subject == "user" {
+		return Response{Text: fmt.Sprintf("I'll remember that you are %s years old for this conversation.", fact.Value), Module: "memory/age"}
+	}
+	return Response{Text: fmt.Sprintf("I'll remember that %s is %s years old for this conversation.", displayPerson(fact.Subject), fact.Value), Module: "memory/age"}
+}
+
+func isGreeting(text string) bool {
+	for _, word := range []string{"hi", "hello", "hey", "good morning", "good afternoon", "good evening"} {
+		if text == word || strings.HasPrefix(text, word+" ") || strings.HasPrefix(text, word+",") || strings.HasPrefix(text, word+"!") {
+			return true
+		}
+	}
+	return false
+}
+
+func isThanks(text string) bool {
+	return text == "thanks" || text == "thank you" || strings.HasPrefix(text, "thanks ") || strings.HasPrefix(text, "thank you ")
+}
+
+func (b *Bot) answerFollowup(text string) (Response, bool) {
+	if b.memory.lastKnowledgeID == "" || b.memory.turn-b.memory.lastKnowledgeTurn > 2 {
+		return Response{}, false
+	}
+	if strings.Contains(text, "how long") || strings.Contains(text, "how much time") {
+		if answer, ok := b.knowledge.Followup(b.memory.lastKnowledgeID, "duration"); ok {
+			return answer, true
+		}
+		return Response{Text: "Which part do you mean? I don't have a more specific timing note for the previous answer.", Module: "memory/follow-up", NeedsClarification: true}, true
+	}
+	return Response{}, false
+}
