@@ -1,0 +1,12 @@
+PyBot Go
+Copyright 2026 contributors
+
+This project is an independent Go implementation inspired by:
+
+  PyBot, https://github.com/huggingface/pybot
+  Copyright Hugging Face and contributors
+  Licensed under the Apache License, Version 2.0.
+
+This repository does not include the upstream Python package or its generated
+knowledge base. The upstream project and this Go implementation are separate
+repositories.

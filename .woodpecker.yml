@@ -1,0 +1,17 @@
+when:
+  event:
+    - push
+    - pull_request
+
+steps:
+  validate:
+    image: golang:1.22
+    commands:
+      - |
+        unformatted="$(gofmt -l bot.go cmd/pybot/main.go)"
+        if [ -n "$unformatted" ]; then
+          printf 'Run gofmt on these files:\n%s\n' "$unformatted"
+          exit 1
+        fi
+      - go vet ./...
+      - go build ./...
