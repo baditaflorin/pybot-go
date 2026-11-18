@@ -20,7 +20,7 @@ const (
  / ____/ /_/ / /_/ / /_/ / /_
 /_/    \__, /_____/\____/\__/
       /____/`
-	tagline  = "A small chatbot written in Go. No weights, no training, just rules."
+	tagline  = "A CPU-only chatbot built from examples, rules, and structured memory."
 	helpText = `Commands:
   /reset   clear the conversation memory
   /help    show this help

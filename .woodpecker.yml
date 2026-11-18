@@ -8,7 +8,7 @@ steps:
     image: golang:1.22
     commands:
       - |
-        unformatted="$(gofmt -l bot.go cmd/pybot/main.go)"
+        unformatted="$(gofmt -l bot.go intent.go cmd/pybot/main.go)"
         if [ -n "$unformatted" ]; then
           printf 'Run gofmt on these files:\n%s\n' "$unformatted"
           exit 1

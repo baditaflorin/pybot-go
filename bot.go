@@ -1,4 +1,4 @@
-// Package pybot provides a small, deterministic, rule-based conversational bot.
+// Package pybot provides a small CPU-only conversational bot with statistical intent routing and explicit answer rules.
 //
 // A Bot owns its conversation state. Calls to Reply and Reset are safe to make
 // from multiple goroutines, though one Bot still represents one conversation.
@@ -16,7 +16,7 @@ import (
 )
 
 // Version is the version of this Go implementation.
-const Version = "0.1.0"
+const Version = "0.2.0"
 
 // Response is a reply and the rule module that selected it.
 type Response struct {
@@ -76,10 +76,13 @@ func (b *Bot) Reply(input string) Response {
 		return Response{Text: "Hello!", Module: "conversation/fallback"}
 	}
 	lower := strings.ToLower(text)
+	messageIntent, intentScore := defaultIntentClassifier.classify(lower)
+	statisticalRoute := intentScore >= intentRouteThreshold
 	ageUpdates := b.rememberAges(text)
 
 	proposals := make([]proposal, 0, 8)
-	if isAgeComparison(lower) || b.hasKnownAgeComparison(lower) {
+	if isAgeComparison(lower) || b.hasKnownAgeComparison(lower) ||
+		(messageIntent == intentAgeComparison && statisticalRoute && strings.Contains(lower, "age")) {
 		if len(b.ageOrder) >= 2 {
 			proposals = append(proposals, proposal{b.compareAges(lower), "reasoning/age-comparison", 120})
 		} else {
@@ -90,7 +93,7 @@ func (b *Bot) Reply(input string) Response {
 		}
 	}
 
-	if isNameQuestion(lower) {
+	if isNameQuestion(lower) || (messageIntent == intentNameQuestion && statisticalRoute) {
 		if b.name != "" {
 			proposals = append(proposals, proposal{"Your name is " + b.name + ".", "memory/name", 110})
 		} else {
@@ -105,35 +108,39 @@ func (b *Bot) Reply(input string) Response {
 		proposals = append(proposals, proposal{"Got it. I'll remember those ages for this conversation.", "memory/ages", 65})
 	}
 
-	if isGreeting(lower) {
+	if isGreeting(lower) || (messageIntent == intentGreeting && statisticalRoute) {
 		greeting := "Hello! What can I help with?"
 		if b.name != "" {
 			greeting = "Hello, " + b.name + "! What can I help with?"
 		}
 		proposals = append(proposals, proposal{greeting, "conversation/greeting", 60})
 	}
-	if strings.Contains(lower, "who are you") || strings.Contains(lower, "what are you") {
-		proposals = append(proposals, proposal{"I'm PyBot Go, a small rule-based chatbot. I don't use a language model.", "conversation/identity", 75})
+	if strings.Contains(lower, "who are you") || strings.Contains(lower, "what are you") ||
+		(messageIntent == intentIdentity && statisticalRoute) {
+		proposals = append(proposals, proposal{"I'm PyBot Go, a small CPU-only chatbot. I use a lightweight statistical router and explicit answer rules, not a language model.", "conversation/identity", 75})
 	}
-	if strings.Contains(lower, "how are you") {
+	if strings.Contains(lower, "how are you") || (messageIntent == intentSmallTalk && statisticalRoute) {
 		proposals = append(proposals, proposal{"I'm running fine. What would you like to talk about?", "conversation/small-talk", 55})
 	}
-	if isThanks(lower) {
+	if isThanks(lower) || (messageIntent == intentThanks && statisticalRoute) {
 		proposals = append(proposals, proposal{"You're welcome!", "conversation/thanks", 55})
 	}
 
-	if strings.Contains(lower, "onion") && (strings.Contains(lower, "cry") || strings.Contains(lower, "eyes")) {
+	if (strings.Contains(lower, "onion") && (strings.Contains(lower, "cry") || strings.Contains(lower, "eyes"))) ||
+		(messageIntent == intentOnion && statisticalRoute) {
 		proposals = append(proposals, proposal{"Cutting an onion releases volatile sulfur compounds. They react with moisture in your eyes and form a mild irritant, which makes your eyes water. A sharp knife and chilling the onion first can reduce the effect.", "knowledge/cooking", 80})
 		b.topic = "onion"
 	}
-	if strings.Contains(lower, "kettle") && (strings.Contains(lower, "lime") || strings.Contains(lower, "scale") || strings.Contains(lower, "clean") || strings.Contains(lower, "descal")) {
+	if (strings.Contains(lower, "kettle") && (strings.Contains(lower, "lime") || strings.Contains(lower, "scale") || strings.Contains(lower, "clean") || strings.Contains(lower, "descal"))) ||
+		(messageIntent == intentKettle && statisticalRoute) {
 		proposals = append(proposals, proposal{"Half fill the kettle with equal parts water and white vinegar, or use citric acid. Boil it, leave it for about 30 minutes, empty it, then boil and discard fresh water twice before using the kettle again.", "knowledge/cooking", 85})
 		b.topic = "kettle-descaling"
 	}
 	if isDurationFollowUp(lower) && b.topic == "kettle-descaling" {
 		proposals = append(proposals, proposal{"Leave the solution in the kettle for about 30 minutes.", "memory/follow-up", 90})
 	}
-	if strings.Contains(lower, "boil") && strings.Contains(lower, "egg") {
+	if (strings.Contains(lower, "boil") && strings.Contains(lower, "egg")) ||
+		(messageIntent == intentEggs && statisticalRoute) {
 		proposals = append(proposals, proposal{"For a large egg placed into boiling water, cook about 6 minutes for a soft yolk, 8–9 minutes for a jammy yolk, or 10–12 minutes for a firm yolk. Cool it in cold water to stop the cooking.", "knowledge/cooking", 80})
 		b.topic = "boiling-eggs"
 	}

@@ -1,6 +1,6 @@
 # PyBot Go
 
-A small, standalone Go reimplementation inspired by [Hugging Face's PyBot](https://github.com/huggingface/pybot). It uses explicit rules and conversation state; it does not use a language model, network service, or third-party Go package.
+A small, standalone Go implementation inspired by [Hugging Face's PyBot](https://github.com/huggingface/pybot). It combines a tiny example-trained Naive Bayes intent router with explicit answer rules and conversation state. It does not use a language model, network service, GPU, or third-party Go package.
 
 ## Why this exists
 
@@ -52,7 +52,8 @@ Interactive commands: `/reset` clears conversation memory, `/help` shows command
 - Remembers a name stated as `I'm Sam` or `my name is Sam`.
 - Remembers age statements such as `Alice is 12 years old` and answers `Who is older?` or `Who is younger?`, including the numeric difference.
 - Includes a small set of direct rules for cooking questions, greetings, and follow-ups.
-- Uses a stable score-based arbiter so more specific rules beat general conversation rules.
+- Uses a small CPU-only Naive Bayes classifier trained from built-in examples to route familiar intents across different phrasings; deterministic rules and solvers still produce the answers. Its routing score is not calibrated and the small example set is not benchmarked yet.
+- Uses a stable score-based arbiter so more specific answers beat general conversation replies.
 - Keeps each conversation's state and random source inside one `Bot`; `Reply` and `Reset` are safe for concurrent calls.
 
 This is intentionally a small first release. It will not understand arbitrary phrasing or answer the broad range of questions supported by a large language model. Unknown questions receive an explicit fallback instead of a fabricated factual answer. The upstream Python project remains the source for the larger swarm-generated experiment and its benchmark results.
@@ -65,7 +66,7 @@ This project is an independent Go implementation inspired by Hugging Face's PyBo
 
 A much stronger non-LLM assistant should not be built by adding thousands of unrelated phrase checks. The next architecture can combine:
 
-1. **Language understanding:** normalize text, identify intent and entities, and use a small CPU-friendly classifier trained on examples to recognize paraphrases. It routes a message; it does not invent the answer.
+1. **Language understanding:** the current baseline has text normalization and a small CPU-friendly Naive Bayes intent router. Expand it with a larger evaluated example set and entity extraction so it recognizes paraphrases and named people without making up facts.
 2. **Structured memory:** store typed facts such as `person: Alice`, `age: 12 years`, and where each fact came from. Keep facts scoped to a conversation unless the user explicitly saves them.
 3. **A query planner and solvers:** turn a question into operations over facts—compare ages, calculate totals, convert units, or reason over dates—and produce a checkable result.
 4. **Local retrieval:** search a curated, source-backed knowledge base for questions that need facts. Retrieval can return the supporting passage, while deterministic code handles calculations and comparisons.
