@@ -13,6 +13,7 @@ const (
 	intentGreeting      intent = "greeting"
 	intentNameQuestion  intent = "name_question"
 	intentAgeComparison intent = "age_comparison"
+	intentAgeRanking    intent = "age_ranking"
 	intentArithmetic    intent = "arithmetic"
 	intentConversion    intent = "unit_conversion"
 	intentDate          intent = "date_math"
@@ -22,6 +23,7 @@ const (
 	intentEggs          intent = "eggs"
 	intentThanks        intent = "thanks"
 	intentSmallTalk     intent = "small_talk"
+	intentKnowledge     intent = "knowledge_question"
 )
 
 type intentExample struct {
@@ -87,6 +89,10 @@ var intentExamples = []intentExample{
 	{intentAgeComparison, "alice is 12 and bob is 50 who is older"},
 	{intentAgeComparison, "one person has the age of 12 somebody is the age of 50 who is older"},
 	{intentAgeComparison, "is sam older than pat"}, {intentAgeComparison, "who is oldest in the family"},
+	{intentAgeRanking, "where does george rank by age"},
+	{intentAgeRanking, "where does he sit among these people"},
+	{intentAgeRanking, "put alice bob and george in age order"},
+	{intentAgeRanking, "who is between alice and bob in age"},
 
 	{intentArithmetic, "what is 12 plus 4"}, {intentArithmetic, "calculate 8 times 7"},
 	{intentArithmetic, "compute 100 divided by 4"}, {intentArithmetic, "what is 18 minus 6"},
@@ -108,6 +114,10 @@ var intentExamples = []intentExample{
 	{intentIdentity, "who are you"}, {intentIdentity, "what are you"},
 	{intentIdentity, "are you an ai"}, {intentIdentity, "are you a language model"},
 	{intentIdentity, "are you a chatbot"},
+
+	{intentKnowledge, "what is romania"}, {intentKnowledge, "tell me about the country romania"},
+	{intentKnowledge, "who was marie curie"}, {intentKnowledge, "what does photosynthesis mean"},
+	{intentKnowledge, "where is the carpathian mountains"},
 
 	{intentOnion, "why do onions make you cry"},
 	{intentOnion, "why do onions make my eyes water"},

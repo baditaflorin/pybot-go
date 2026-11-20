@@ -33,6 +33,27 @@ func TestArithmeticDivisionByZeroClarifies(t *testing.T) {
 	}
 }
 
+func TestSquareRootUsesPreciseCPUResult(t *testing.T) {
+	response := New(0).Reply("What is the square root of 2?")
+	if response.Module != "reasoning/arithmetic" || response.Text != "≈ 1.414213562373" {
+		t.Fatalf("response = %#v, want a precise square-root approximation", response)
+	}
+}
+
+func TestSquareRootOfPerfectSquareStaysExact(t *testing.T) {
+	response := New(0).Reply("Find the square root of 81")
+	if response.Module != "reasoning/arithmetic" || response.Text != "9" {
+		t.Fatalf("response = %#v, want exact result 9", response)
+	}
+}
+
+func TestSquareRootCanAppearInsideExpression(t *testing.T) {
+	response := New(0).Reply("sqrt(2) * sqrt(2)")
+	if response.Module != "reasoning/arithmetic" || response.Text != "≈ 2" {
+		t.Fatalf("response = %#v, want approximate result 2", response)
+	}
+}
+
 func TestOrdinaryAndDoesNotBecomeAddition(t *testing.T) {
 	response := New(0).Reply("I like bread and butter")
 	if response.Module == "reasoning/arithmetic" {

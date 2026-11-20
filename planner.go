@@ -6,10 +6,22 @@ import (
 )
 
 const statisticalRouteThreshold = 0.55
+const semanticRouteThreshold = 0.34
 
 // Reply parses a message, updates conversation memory, then routes it through
 // exact solvers, source-backed local retrieval, and conservative fallbacks.
 func (b *Bot) Reply(input string) Response {
+	return b.replyWithSemanticHint(input, "", 0)
+}
+
+// ReplyWithSemanticHint adds a CPU embedding similarity hint to the regular Go
+// router. The hint can choose a deterministic route, but cannot supply or
+// generate an answer. Confidence is cosine similarity, not a probability.
+func (b *Bot) ReplyWithSemanticHint(input, hintedIntent string, confidence float64) Response {
+	return b.replyWithSemanticHint(input, hintedIntent, confidence)
+}
+
+func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float64) Response {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -26,8 +38,21 @@ func (b *Bot) Reply(input string) Response {
 		}
 	}
 	messageIntent, intentScore := defaultIntentClassifier.classify(lower)
-	routeTrusted := intentScore >= statisticalRouteThreshold
+	semanticAccepted := false
+	if hint := parseSemanticIntent(hintedIntent); hint != "" && confidence >= semanticRouteThreshold {
+		// Similarity alone should not invent missing age context. Keep ranking
+		// routes tied to the words in the question and the facts in memory.
+		if hint != intentAgeRanking || isAgeRankingQuestion(lower, len(b.memory.ages())) ||
+			(len(b.memory.ages()) >= 2 && looksLikeComparativeAgeFollowup(lower)) {
+			messageIntent, intentScore = hint, confidence
+			semanticAccepted = true
+		}
+	}
+	routeTrusted := intentScore >= statisticalRouteThreshold || semanticAccepted
 
+	if isAgeRankingQuestion(lower, len(b.memory.ages())) || (messageIntent == intentAgeRanking && routeTrusted) {
+		return b.answerAgeRanking(lower)
+	}
 	if isAgeComparison(lower) || (messageIntent == intentAgeComparison && routeTrusted) {
 		return b.answerAgeComparison(lower)
 	}
@@ -92,6 +117,15 @@ func (b *Bot) Reply(input string) Response {
 	}
 }
 
+func parseSemanticIntent(value string) intent {
+	switch intent(value) {
+	case intentAgeComparison, intentAgeRanking, intentArithmetic, intentConversion, intentDate, intentKnowledge:
+		return intent(value)
+	default:
+		return ""
+	}
+}
+
 func normalizeText(text string) string {
 	return strings.Join(strings.Fields(normalizeIntentAliases(text)), " ")
 }
@@ -112,6 +146,28 @@ func isAgeComparison(text string) bool {
 		strings.Contains(text, "years old") || strings.Contains(text, "who ") ||
 		strings.HasPrefix(text, "who's ") || strings.HasPrefix(text, "which ") ||
 		strings.HasPrefix(text, "how much older") || strings.HasPrefix(text, "how much younger"))
+}
+
+func isAgeRankingQuestion(text string, knownAgeCount int) bool {
+	positionWord := strings.Contains(text, "rank") || strings.Contains(text, "position") ||
+		strings.Contains(text, "age order") || strings.Contains(text, "age ranking") ||
+		strings.Contains(text, "sit") || strings.Contains(text, "fit") || strings.Contains(text, "stand") ||
+		strings.Contains(text, "fall between") || strings.Contains(text, "come in")
+	if !positionWord {
+		return false
+	}
+	if strings.Contains(text, "age") || strings.Contains(text, "older") || strings.Contains(text, "younger") ||
+		strings.Contains(text, "oldest") || strings.Contains(text, "youngest") || strings.Contains(text, "years old") {
+		return true
+	}
+	return knownAgeCount >= 2 && (strings.Contains(text, "where") || strings.Contains(text, "between"))
+}
+
+func looksLikeComparativeAgeFollowup(text string) bool {
+	return strings.Contains(text, "compare") || strings.Contains(text, "relative") ||
+		strings.Contains(text, "among") || strings.Contains(text, "where") ||
+		strings.Contains(text, "sit") || strings.Contains(text, "fit") ||
+		strings.Contains(text, "position") || strings.Contains(text, "rank")
 }
 
 func isAgeQuestion(text string) bool {

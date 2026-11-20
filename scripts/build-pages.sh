@@ -4,13 +4,13 @@ set -eu
 repo_root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$repo_root"
 
-if [ ! -f site/index.html ] || [ ! -f site/app.js ] || [ ! -f site/app.css ]; then
+if [ ! -f site/index.html ] || [ ! -f site/app.js ] || [ ! -f site/semantic.js ] || [ ! -f site/app.css ]; then
 	printf 'site source files are incomplete\n' >&2
 	exit 1
 fi
 
 mkdir -p docs
-cp site/index.html site/app.js site/app.css site/favicon.svg docs/
+cp site/index.html site/app.js site/semantic.js site/app.css site/favicon.svg docs/
 printf '%s\n' 'pybot.0sample.com' > docs/CNAME
 : > docs/.nojekyll
 

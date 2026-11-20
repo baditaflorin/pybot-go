@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
     <meta name="description" content="Try PyBot Go, a CPU-only assistant that solves small, explicit tasks without an LLM.">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; style-src 'self'; connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://hf.co https://*.hf.co https://*.xethub.hf.co https://en.wikipedia.org; worker-src 'self' blob:; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
     <title>PyBot Go — Browser Lab</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./app.css">
     <script defer src="./wasm_exec.js"></script>
+    <script defer src="./semantic.js"></script>
     <script defer src="./app.js"></script>
   </head>
   <body>
@@ -19,7 +20,7 @@
         <span>pybot<span class="brand-muted">/go</span></span>
       </a>
       <div class="topbar-right">
-        <span class="privacy-pill"><span class="privacy-dot"></span> Runs in your browser</span>
+        <span class="privacy-pill"><span class="privacy-dot"></span> CPU model · browser</span>
         <a class="source-link" href="https://github.com/baditaflorin/pybot-go" target="_blank" rel="noopener noreferrer">Source <span aria-hidden="true">↗</span></a>
       </div>
     </header>
@@ -28,10 +29,12 @@
       <section class="intro" aria-labelledby="page-title">
         <p class="eyebrow"><span class="eyebrow-line"></span> CPU-only · no LLM</p>
         <h1 id="page-title">A small bot.<br><span>Clear answers.</span></h1>
-        <p class="intro-copy">Try structured memory, exact solvers, and cited local knowledge in a real conversation. No account needed.</p>
+        <p class="intro-copy">Try age-aware follow-ups, exact math, and cited facts. A small transformer helps route meaning on your CPU; Go solvers and sourced retrieval provide the answers. No LLM or GPU.</p>
         <div class="capability-row" aria-label="Capabilities">
           <span>Age comparison</span>
-          <span>Arithmetic</span>
+          <span>Smart follow-ups</span>
+          <span>Exact math</span>
+          <span>Square roots</span>
           <span>Unit conversion</span>
           <span>Date math</span>
           <span>Sourced answers</span>
@@ -59,7 +62,7 @@
               <div class="message-avatar" aria-hidden="true">p.</div>
               <div class="message-content">
                 <div class="message-meta"><span>PyBot</span><span class="meta-separator">·</span><span>ready to try</span></div>
-                <div class="bubble">Hi. Give me a fact or a concrete question. I’ll show which capability handled it and cite sources when I use local knowledge.</div>
+                <div class="bubble">Hi. Tell me a fact, ask a calculation, or try a sourced question. I’ll show which capability handled it.</div>
               </div>
             </article>
           </div>
@@ -96,6 +99,11 @@
               <span><strong>Calculate exactly</strong><small>What is (18 + 6) / 3?</small></span>
               <span class="prompt-arrow" aria-hidden="true">→</span>
             </button>
+            <button class="prompt-card" type="button" data-prompt="What is the square root of 2?">
+              <span class="prompt-icon icon-math" aria-hidden="true">√</span>
+              <span><strong>Approximate a root</strong><small>What is the square root of 2?</small></span>
+              <span class="prompt-arrow" aria-hidden="true">→</span>
+            </button>
             <button class="prompt-card" type="button" data-prompt="How many inches are in 2 meters?">
               <span class="prompt-icon icon-units" aria-hidden="true">↔</span>
               <span><strong>Convert units</strong><small>How many inches in 2 meters?</small></span>
@@ -106,13 +114,18 @@
               <span><strong>Ask a sourced question</strong><small>Why do onions make eyes water?</small></span>
               <span class="prompt-arrow" aria-hidden="true">→</span>
             </button>
+            <button class="prompt-card" type="button" data-prompt="What is Romania?">
+              <span class="prompt-icon icon-source" aria-hidden="true">⌕</span>
+              <span><strong>Ask about a place</strong><small>What is Romania?</small></span>
+              <span class="prompt-arrow" aria-hidden="true">→</span>
+            </button>
           </div>
-          <p class="try-note"><span class="note-check" aria-hidden="true">✓</span> Your prompt stays in this tab. The bot and its small knowledge base run locally in WebAssembly.</p>
+          <p class="try-note"><span class="note-check" aria-hidden="true">✓</span> The CPU model downloads on first use (about 23 MB) and runs locally. If a factual question is outside PyBot’s small library, only that question is sent to Wikipedia; the answer includes its source link.</p>
         </aside>
       </section>
 
       <footer class="page-footer">
-        <span>Built with Go · WebAssembly · local sources</span>
+        <span>Built with Go · WebAssembly · CPU embeddings</span>
         <span>Conversation memory clears when you start a new chat or reload.</span>
       </footer>
     </main>

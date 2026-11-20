@@ -17,7 +17,7 @@ func main() {
 	global := js.Global()
 
 	reply := js.FuncOf(func(_ js.Value, args []js.Value) any {
-		if len(args) != 1 || args[0].Type() != js.TypeString {
+		if len(args) == 0 || args[0].Type() != js.TypeString {
 			return marshal(pybot.Response{Text: "Enter a message to get started."})
 		}
 		prompt := args[0].String()
@@ -28,7 +28,15 @@ func main() {
 				NeedsClarification: true,
 			})
 		}
-		return marshal(bot.Reply(prompt))
+		hint := ""
+		if len(args) > 1 && args[1].Type() == js.TypeString {
+			hint = args[1].String()
+		}
+		confidence := 0.0
+		if len(args) > 2 && args[2].Type() == js.TypeNumber {
+			confidence = args[2].Float()
+		}
+		return marshal(bot.ReplyWithSemanticHint(prompt, hint, confidence))
 	})
 	reset := js.FuncOf(func(_ js.Value, _ []js.Value) any {
 		bot.Reset()

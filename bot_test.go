@@ -45,6 +45,57 @@ func TestAgeComparisonSelectsPeopleNamedInQuestion(t *testing.T) {
 	}
 }
 
+func TestAgeRankingFollowupPlacesNewPersonBetweenRememberedPeople(t *testing.T) {
+	bot := New(2)
+	bot.Reply("Alice is 12 years old.")
+	bot.Reply("Bob is 50 years old.")
+	response := bot.Reply("And if George is 30 where does it sit?")
+	if response.Module != "reasoning/age-ranking" {
+		t.Fatalf("module = %q, want age ranking", response.Module)
+	}
+	for _, want := range []string{"George", "30", "18 years older than Alice", "20 years younger than Bob", "middle of the three"} {
+		if !strings.Contains(response.Text, want) {
+			t.Fatalf("ranking = %q, missing %q", response.Text, want)
+		}
+	}
+	facts := bot.Facts()
+	if got := len(facts); got != 3 {
+		t.Fatalf("remembered facts = %d, want Alice, Bob, and George", got)
+	}
+	if facts[2].Subject != "george" {
+		t.Fatalf("follow-up age was stored under %q, want george", facts[2].Subject)
+	}
+}
+
+func TestAgeRankingFollowupResolvesLastNamedPerson(t *testing.T) {
+	bot := New(2)
+	bot.Reply("Alice is 12 years old.")
+	bot.Reply("Bob is 50 years old.")
+	bot.Reply("George is 30 years old.")
+	response := bot.Reply("Where does he sit by age?")
+	if response.Module != "reasoning/age-ranking" || !strings.Contains(response.Text, "George") ||
+		!strings.Contains(response.Text, "18 years older than Alice") {
+		t.Fatalf("unexpected ranking followup: %#v", response)
+	}
+}
+
+func TestSemanticAgeRankingHintRoutesComparativeFollowup(t *testing.T) {
+	bot := New(2)
+	bot.Reply("Alice is 12 years old.")
+	bot.Reply("Bob is 50 years old.")
+	response := bot.ReplyWithSemanticHint("How does he compare with the others?", "age_ranking", 0.56)
+	if response.Module != "reasoning/age-ranking" || !strings.Contains(response.Text, "Bob") {
+		t.Fatalf("semantic age-ranking response = %#v", response)
+	}
+}
+
+func TestSemanticAgeRankingHintNeedsAgeContext(t *testing.T) {
+	response := New(2).ReplyWithSemanticHint("Tell me a joke", "age_ranking", 0.95)
+	if response.Module == "reasoning/age-ranking" {
+		t.Fatalf("age ranking hint hijacked unrelated text: %#v", response)
+	}
+}
+
 func TestRememberAndAnswerUserAge(t *testing.T) {
 	bot := New(1)
 	bot.Reply("I am 37 years old.")

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 - 2026-11-20
+
+- Add an optional, quantized MiniLM embedding router that runs on CPU in the browser and routes follow-ups to existing Go solvers without generating answers.
+- Rank remembered people by age, including the exact George-between-Alice-and-Bob follow-up and age differences.
+- Solve square roots exactly for perfect squares and with a clear decimal approximation for irrational results.
+- Add cited Wikipedia lookup for factual questions outside the small embedded corpus; only the current question is sent for that lookup.
+- Document model download, browser processing, and external factual lookup behavior.
+
 ## 0.4.0 - 2026-11-20
 
 - Add a browser chat interface that runs the Go bot locally as WebAssembly.

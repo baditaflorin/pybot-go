@@ -25,7 +25,7 @@ type conversationMemory struct {
 
 var (
 	nameStatementRE = regexp.MustCompile(`(?i)(?:my name is|i am|i'm|call me)\s+([\p{L}][\p{L}'-]*)`)
-	ageStatementRE  = regexp.MustCompile(`(?i)\b([\p{L}][\p{L}'-]*(?:\s+[\p{L}][\p{L}'-]*)?)\s+(?:is\s+(?:(?:the\s+)?age(?:\s+of)?\s+|aged\s+)?|has\s+(?:the\s+)?age\s+of\s+)(\d{1,3})(?:\s*(?:years?|yrs?)\s*old)?\b`)
+	ageStatementRE  = regexp.MustCompile(`(?i)\b(?:(?:and\s+if|if|and|then)\s+)?([\p{L}][\p{L}'-]*(?:\s+[\p{L}][\p{L}'-]*)?)\s+(?:is\s+(?:(?:the\s+)?age(?:\s+of)?\s+|aged\s+)?|has\s+(?:the\s+)?age\s+of\s+)(\d{1,3})(?:\s*(?:years?|yrs?)\s*old)?\b`)
 	selfAgeRE       = regexp.MustCompile(`(?i)\b(?:i am|i'm)\s+(\d{1,3})\s*(?:years?|yrs?)\s*old\b`)
 )
 
