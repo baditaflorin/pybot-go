@@ -112,6 +112,7 @@ func (kb *knowledgeBase) Search(query string, route intent, routeTrusted bool) (
 	if len(queryTerms) == 0 {
 		return retrievalResult{}, false
 	}
+	var linuxCandidates map[string]struct{}
 	if route == intentLinuxExpert || route == intentKnowledge {
 		if documentID := linuxConceptDocumentID(query); documentID != "" {
 			for _, indexed := range kb.documents {
@@ -122,10 +123,12 @@ func (kb *knowledgeBase) Search(query string, route intent, routeTrusted bool) (
 		}
 	}
 	if route == intentLinuxExpert && isGenericLinuxHelpQuery(query) {
-		for _, indexed := range kb.documents {
-			if indexed.document.ID == "linux-help" {
-				return retrievalResult{Document: indexed.document, Score: 1}, true
-			}
+		return kb.documentByID("linux-help")
+	}
+	if route == intentLinuxExpert {
+		linuxCandidates = linuxCandidateDocumentIDs(query)
+		if len(linuxCandidates) == 0 {
+			return retrievalResult{}, false
 		}
 	}
 	searchTerms := append([]string(nil), queryTerms...)
@@ -144,6 +147,18 @@ func (kb *knowledgeBase) Search(query string, route intent, routeTrusted bool) (
 	}
 	ranked := make([]scored, 0, len(kb.documents))
 	for _, indexed := range kb.documents {
+		id := indexed.document.ID
+		if strings.HasPrefix(id, "linux-") {
+			if route != intentLinuxExpert {
+				continue
+			}
+			if _, allowed := linuxCandidates[id]; !allowed {
+				continue
+			}
+		}
+		if !matchesNonLinuxDocumentTopic(id, query) {
+			continue
+		}
 		score := 0.0
 		rawMatches := 0
 		for _, term := range searchTerms {
@@ -151,7 +166,7 @@ func (kb *knowledgeBase) Search(query string, route intent, routeTrusted bool) (
 			if tf == 0 {
 				continue
 			}
-			if containsTerm(queryTerms, term) {
+			if containsTerm(queryTerms, term) && !isRetrievalStopword(term) {
 				rawMatches++
 			}
 			idf := math.Log(1 + (float64(len(kb.documents)-kb.documentFrequencies[term])+0.5)/(float64(kb.documentFrequencies[term])+0.5))
@@ -180,6 +195,38 @@ func (kb *knowledgeBase) Search(query string, route intent, routeTrusted bool) (
 		return retrievalResult{Ambiguous: []knowledgeDocument{best.doc, ranked[1].doc}}, true
 	}
 	return retrievalResult{Document: best.doc, Score: best.score}, true
+}
+
+func (kb *knowledgeBase) documentByID(documentID string) (retrievalResult, bool) {
+	for _, indexed := range kb.documents {
+		if indexed.document.ID == documentID {
+			return retrievalResult{Document: indexed.document, Score: 1}, true
+		}
+	}
+	return retrievalResult{}, false
+}
+
+func matchesNonLinuxDocumentTopic(documentID, query string) bool {
+	text := strings.ToLower(query)
+	switch documentID {
+	case "onion-tears":
+		return containsAny(text, "onion", "onions", "shallot")
+	case "kettle-descaling":
+		return containsAny(text, "kettle", "teapot", "limescale", "descale", "citric acid", "vinegar")
+	case "egg-safety":
+		return containsAny(text, "egg", "eggs", "omelet", "omelette")
+	default:
+		return true
+	}
+}
+
+func isRetrievalStopword(term string) bool {
+	switch term {
+	case "a", "an", "and", "are", "as", "at", "be", "but", "by", "can", "could", "did", "do", "does", "for", "from", "had", "has", "have", "how", "i", "in", "is", "it", "me", "my", "of", "on", "or", "our", "should", "that", "the", "their", "then", "there", "these", "they", "this", "those", "to", "was", "we", "were", "what", "when", "where", "which", "who", "why", "will", "with", "you", "your":
+		return true
+	default:
+		return false
+	}
 }
 
 func (kb *knowledgeBase) Followup(documentID, kind string) (Response, bool) {

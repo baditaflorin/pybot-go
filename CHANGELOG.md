@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.1 - 2026-11-20
+
+- Expand the CPU-only Linux reference library across common shell, storage, process, desktop, networking, and service questions.
+- Restrict Linux retrieval to matching topics and abstain on unsupported Linux questions instead of returning an unrelated article.
+- Add regression coverage for previously mismatched Linux topics and publish the 100-question retrieval sample results.
+- Keep the browser asset URLs aligned with the new version.
+
 ## 0.6.0 - 2026-11-20
 
 - Add a CPU-only Linux administration route with cited guidance for common service, storage, networking, permissions, package, SSH, and container tasks.

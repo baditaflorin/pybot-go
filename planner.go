@@ -66,7 +66,8 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	if response, handled := solveUnitConversion(lower); handled {
 		return response
 	}
-	if response, handled := solveDateQuestion(lower, b.clock()); handled {
+	linuxCommandQuestion := isLinuxQuestion(lower) && containsAny(lower, "set date", "date through command line", "add x days to date", "year while listing", "show the year while listing", "ls to show", "timestamp", "modification time", "created time")
+	if response, handled := solveDateQuestion(lower, b.clock()); handled && !linuxCommandQuestion {
 		return response
 	}
 	if response, handled := solveArithmetic(lower); handled {
