@@ -68,6 +68,7 @@ var intentAliases = []phraseAlias{
 
 func normalizeIntentAliases(text string) string {
 	text = strings.ToLower(text)
+	text = strings.NewReplacer("’", "'", "‘", "'", "“", `"`, "”", `"`).Replace(text)
 	for _, alias := range intentAliases {
 		text = alias.pattern.ReplaceAllString(text, alias.canonical)
 	}
