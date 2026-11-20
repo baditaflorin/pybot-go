@@ -38,6 +38,13 @@
       "What date is 30 days after January 1?", "How many days are between two dates?",
       "What day will it be two weeks from today?",
     ],
+    context_followup: [
+      "Repeat your last answer.", "Can you say that again?", "Show me the sources for that.",
+      "What references support that answer?", "Make your last response shorter.",
+      "Explain that step to me.", "Why did you recommend those commands?",
+      "Is that command safe to run?", "Walk me through the previous answer.",
+      "Continue with the next steps.",
+    ],
   };
 
   let extractorPromise;
@@ -101,7 +108,7 @@
 
   function shouldUseContext(text) {
     const words = text.trim().split(/\s+/).length;
-    return words <= 10 && /\b(it|they|them|he|she|him|her|that|those|these|there|what about|and if|where does)\b/i.test(text);
+    return words <= 10 && /\b(it|they|them|he|she|him|her|that|those|these|there|same|again|previous|more|why|source|command|step|safe|next|what about|and if|where does)\b/i.test(text);
   }
 
   function cosine(vector, prototype) {

@@ -42,9 +42,33 @@ func main() {
 		bot.Reset()
 		return nil
 	})
-	callbacks = append(callbacks, reply, reset)
+	restore := js.FuncOf(func(_ js.Value, args []js.Value) any {
+		if len(args) == 0 || args[0].Type() != js.TypeString {
+			return false
+		}
+		var turns []pybot.ConversationTurn
+		if err := json.Unmarshal([]byte(args[0].String()), &turns); err != nil {
+			return false
+		}
+		bot.RestoreConversation(turns)
+		return true
+	})
+	rememberResponse := js.FuncOf(func(_ js.Value, args []js.Value) any {
+		if len(args) < 2 || args[0].Type() != js.TypeString || args[1].Type() != js.TypeString {
+			return false
+		}
+		var response pybot.Response
+		if err := json.Unmarshal([]byte(args[1].String()), &response); err != nil {
+			return false
+		}
+		bot.RememberResponse(args[0].String(), response)
+		return true
+	})
+	callbacks = append(callbacks, reply, reset, restore, rememberResponse)
 	global.Set("pybotReply", reply)
 	global.Set("pybotReset", reset)
+	global.Set("pybotRestoreConversation", restore)
+	global.Set("pybotRememberResponse", rememberResponse)
 	global.Set("pybotReady", true)
 	select {}
 }

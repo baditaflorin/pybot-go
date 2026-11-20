@@ -10,21 +10,22 @@ import (
 type intent string
 
 const (
-	intentGreeting      intent = "greeting"
-	intentNameQuestion  intent = "name_question"
-	intentAgeComparison intent = "age_comparison"
-	intentAgeRanking    intent = "age_ranking"
-	intentArithmetic    intent = "arithmetic"
-	intentConversion    intent = "unit_conversion"
-	intentDate          intent = "date_math"
-	intentIdentity      intent = "identity"
-	intentOnion         intent = "onion"
-	intentKettle        intent = "kettle"
-	intentEggs          intent = "eggs"
-	intentThanks        intent = "thanks"
-	intentSmallTalk     intent = "small_talk"
-	intentKnowledge     intent = "knowledge_question"
-	intentLinuxExpert   intent = "linux_expert"
+	intentGreeting        intent = "greeting"
+	intentNameQuestion    intent = "name_question"
+	intentAgeComparison   intent = "age_comparison"
+	intentAgeRanking      intent = "age_ranking"
+	intentArithmetic      intent = "arithmetic"
+	intentConversion      intent = "unit_conversion"
+	intentDate            intent = "date_math"
+	intentIdentity        intent = "identity"
+	intentOnion           intent = "onion"
+	intentKettle          intent = "kettle"
+	intentEggs            intent = "eggs"
+	intentThanks          intent = "thanks"
+	intentSmallTalk       intent = "small_talk"
+	intentKnowledge       intent = "knowledge_question"
+	intentLinuxExpert     intent = "linux_expert"
+	intentContextFollowup intent = "context_followup"
 )
 
 type intentExample struct {
@@ -83,6 +84,17 @@ var intentExamples = []intentExample{
 	{intentNameQuestion, "do you remember my name"}, {intentNameQuestion, "who am i"},
 	{intentNameQuestion, "what do you call me"}, {intentNameQuestion, "what name did i tell you"},
 	{intentNameQuestion, "what was the name i gave you"},
+
+	{intentContextFollowup, "repeat your last answer"},
+	{intentContextFollowup, "can you say that again"},
+	{intentContextFollowup, "show me the sources for that"},
+	{intentContextFollowup, "what references support that answer"},
+	{intentContextFollowup, "make your last response shorter"},
+	{intentContextFollowup, "explain that step to me"},
+	{intentContextFollowup, "why did you recommend those commands"},
+	{intentContextFollowup, "is that command safe to run"},
+	{intentContextFollowup, "walk me through the previous answer"},
+	{intentContextFollowup, "continue with the next steps"},
 
 	{intentAgeComparison, "who is older"}, {intentAgeComparison, "who's younger"},
 	{intentAgeComparison, "which person is older"}, {intentAgeComparison, "compare their ages"},

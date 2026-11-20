@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.0 - 2026-11-20
+
+- Add a bounded turn history that tracks prior questions, answers, routes, sources, and external topics.
+- Restore the last 24 turns from per-tab session storage; the Go runtime replays the saved turns so its typed memory and follow-up context come back after reload.
+- Resolve contextual follow-ups for repeating, shortening, explaining, checking safety, citing sources, changing Linux distributions, and asking more about a sourced topic.
+- Remember a user's stated Linux distribution for later help, answer distro-recall questions, and support selective forgetting of a name, age, or distribution.
+- Add contextual follow-up prototypes to the CPU embedding router without allowing the model to generate response text.
+- Add suggested follow-up actions, a live thinking state, answer copying with citations, Markdown transcript export, and a message length counter.
+- Add `/context` and `/forget` to interactive CLI chat; document 50 observable conversational improvements.
+- Version browser assets for the new conversation runtime.
+
 ## 0.6.1 - 2026-11-20
 
 - Expand the CPU-only Linux reference library across common shell, storage, process, desktop, networking, and service questions.
