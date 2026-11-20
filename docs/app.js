@@ -393,7 +393,7 @@
     }
     try {
       const go = new Go();
-      const binary = await fetch("./pybot.wasm?v=0.7.0");
+      const binary = await fetch("./pybot.wasm?v=0.7.1");
       if (!binary.ok) throw new Error("WebAssembly bundle is unavailable.");
       const result = await WebAssembly.instantiate(await binary.arrayBuffer(), go.importObject);
       void go.run(result.instance).catch(() => setReady(false, "Runtime failed to load."));

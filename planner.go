@@ -145,10 +145,11 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 		}
 		b.memory.lastKnowledgeID = result.Document.ID
 		b.memory.lastKnowledgeTurn = b.memory.turn
+		answer, sources := tailorLinuxPackageAnswer(result.Document, b.memory.linuxDistribution())
 		return Response{
-			Text:    result.Document.Answer,
+			Text:    answer,
 			Module:  "retrieval/" + result.Document.ID,
-			Sources: allSources(result.Document),
+			Sources: sources,
 		}
 	}
 	return Response{
@@ -168,7 +169,7 @@ func isLinuxEnvironmentReply(text string) bool {
 	if len(strings.Fields(text)) > 7 || containsAny(text, "update packages", "install packages", "failed service", "disk space", "dns", "ssh", "permissions", "what is", "how do i", "how can i", "what should") {
 		return false
 	}
-	if containsAny(text, "what about", "same on", "and on", "running", "i use", "i'm on", "i am on", "my system is") {
+	if containsAny(text, "what about", "same on", "and on", "running", "i use", "i'm on", "i am on", "i'm using", "i am using", "my system is", "my distro is", "my distribution is") {
 		return true
 	}
 	if len(strings.Fields(text)) <= 3 && !strings.HasPrefix(text, "what is ") && !strings.HasPrefix(text, "what's ") {
@@ -178,7 +179,36 @@ func isLinuxEnvironmentReply(text string) bool {
 }
 
 func isLinuxEnvironmentStatement(text string) bool {
-	return containsAny(text, "i use", "i'm on", "i am on", "i run", "i'm running", "i am running", "my system is", "my server is", "my laptop is", "running ")
+	return containsAny(text, "i use", "i'm on", "i am on", "i'm using", "i am using", "i run", "i'm running", "i am running", "my system is", "my server is", "my laptop is", "my distro is", "my distribution is", "running ")
+}
+
+func tailorLinuxPackageAnswer(document knowledgeDocument, distro string) (string, []Source) {
+	sources := allSources(document)
+	if document.ID != "linux-package-updates" || distro == "" {
+		return document.Answer, sources
+	}
+
+	lower := strings.ToLower(distro)
+	var answer, sourceMatch string
+	switch {
+	case containsAny(lower, "ubuntu", "debian", "mint", "pop os", "pop_os", "pop!_os"):
+		answer = fmt.Sprintf("For %s, run `sudo apt update` to refresh package indexes, then use `apt list --upgradable` to preview changes. Run `sudo apt upgrade` to install the reviewed upgrades. On a production machine, follow its maintenance window and check proposed removals before confirming.", distro)
+		sourceMatch = "debian manpages"
+	case containsAny(lower, "fedora", "rhel", "red hat", "rocky", "alma"):
+		answer = fmt.Sprintf("For %s, run `sudo dnf upgrade --refresh` to refresh metadata and install available package updates. Review the transaction summary before confirming, especially on production systems.", distro)
+		sourceMatch = "fedora docs"
+	case containsAny(lower, "arch", "manjaro"):
+		answer = fmt.Sprintf("For %s, run `sudo pacman -Syu` to synchronize repositories and upgrade the full system together. Arch-based systems do not support partial upgrades; review the transaction before confirming.", distro)
+		sourceMatch = "archwiki"
+	default:
+		return document.Answer, sources
+	}
+	for _, source := range sources {
+		if strings.Contains(strings.ToLower(source.Title), sourceMatch) {
+			return answer, []Source{source}
+		}
+	}
+	return answer, sources
 }
 
 func parseSemanticIntent(value string) intent {

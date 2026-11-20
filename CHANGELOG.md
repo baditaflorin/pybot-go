@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.1 - 2026-11-20
+
+- Normalize smart apostrophes and recognize natural statements like “I’m using Ubuntu 24.04” as environment memory.
+- Tailor package update instructions and citations to the remembered Linux distribution.
+
 ## 0.7.0 - 2026-11-20
 
 - Add a bounded turn history that tracks prior questions, answers, routes, sources, and external topics.

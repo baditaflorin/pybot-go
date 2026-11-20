@@ -56,7 +56,7 @@ func (m *conversationMemory) remember(text string) int {
 			updates++
 		}
 	}
-	if distro := linuxDistro(text); distro != "" && (isLinuxEnvironmentStatement(strings.ToLower(text)) ||
+	if distro := linuxDistro(text); distro != "" && (isLinuxEnvironmentStatement(normalizeText(text)) ||
 		(m.lastResponse.NeedsClarification && strings.HasPrefix(m.lastResponse.Module, "linux/"))) {
 		m.setFact(Fact{Subject: "user", Attribute: "linux_distribution", Value: distro, Source: text, Turn: m.turn})
 		updates++
