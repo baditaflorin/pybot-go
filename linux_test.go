@@ -61,6 +61,29 @@ func TestLinuxHelpQuestionSetsDistroAndRedactionExpectations(t *testing.T) {
 	}
 }
 
+func TestLinuxConceptQuestionsReturnSourcedDefinitions(t *testing.T) {
+	cases := []struct {
+		question string
+		document string
+		answer   string
+	}{
+		{"What is Linux?", "linux-overview", "Linux is the kernel"},
+		{"What is systemd?", "linux-systemd-overview", "system and service manager"},
+		{"What is SSH?", "linux-ssh-overview", "secure remote login"},
+	}
+	for _, test := range cases {
+		t.Run(test.question, func(t *testing.T) {
+			response := New(0).Reply(test.question)
+			if response.Module != "retrieval/"+test.document {
+				t.Fatalf("module = %q, want retrieval/%s; answer: %s", response.Module, test.document, response.Text)
+			}
+			if !strings.Contains(strings.ToLower(response.Text), strings.ToLower(test.answer)) || len(response.Sources) == 0 {
+				t.Fatalf("response is not a sourced answer containing %q: %#v", test.answer, response)
+			}
+		})
+	}
+}
+
 func TestLinuxIntentRecognizesAdminCommandsAndRespectsExplicitOtherOS(t *testing.T) {
 	for _, question := range []string{
 		"What does chmod 755 mean?", "How do I check disk space on Ubuntu?",
@@ -72,5 +95,8 @@ func TestLinuxIntentRecognizesAdminCommandsAndRespectsExplicitOtherOS(t *testing
 	}
 	if isLinuxQuestion("How do I check disk space on Windows with PowerShell?") {
 		t.Fatal("explicit Windows question was classified as Linux administration")
+	}
+	if isLinuxQuestion("What is Linux?") {
+		t.Fatal("general Linux definition was classified as administration help")
 	}
 }

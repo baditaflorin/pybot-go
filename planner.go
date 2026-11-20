@@ -52,6 +52,9 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	if isLinuxQuestion(lower) {
 		messageIntent, intentScore = intentLinuxExpert, 1
 	}
+	if linuxConceptDocumentID(lower) != "" {
+		messageIntent, intentScore = intentKnowledge, 1
+	}
 	routeTrusted := intentScore >= statisticalRouteThreshold || semanticAccepted
 
 	if isAgeRankingQuestion(lower, len(b.memory.ages())) || (messageIntent == intentAgeRanking && routeTrusted) {
@@ -80,7 +83,7 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	}
 	if isCapabilityQuestion(lower) {
 		return Response{
-			Text:   "I can remember facts you tell me in this chat and answer follow-ups; compare or rank ages; calculate arithmetic and square roots; convert common units; and work out dates. I can answer a few built-in topics and look up other factual questions with a source link. For example, ask who is older, the square root of 2, or the capital of Romania. The CPU transformer helps match wording to these routes; it doesn't write answers. I don't use a generative LLM or GPU.",
+			Text:   "I can help troubleshoot Linux services, logs, disk usage, networking, permissions, SSH, packages, and Docker with sourced guidance and read-only first checks. I can remember facts you tell me in this chat and answer follow-ups; compare or rank ages; calculate arithmetic and square roots; convert common units; and work out dates. I can answer a few built-in topics and look up other factual questions with a source link. For example, ask who is older, the square root of 2, or the capital of Romania. The CPU transformer helps match wording to these routes; it doesn't write answers. I don't use a generative LLM or GPU.",
 			Module: "conversation/capabilities",
 		}
 	}
@@ -150,6 +153,7 @@ func isCapabilityQuestion(text string) bool {
 		"what can you do", "what you can do", "what can i ask", "what can i ask you", "what are you able to do",
 		"what are your capabilities", "what questions can you answer", "how can you help me",
 		"what kind of questions can you answer", "what do you do", "list your capabilities",
+		"what linux help can you provide", "what can i ask you about linux", "what can you do on linux",
 	} {
 		if strings.Contains(text, phrase) {
 			return true

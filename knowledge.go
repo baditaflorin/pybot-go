@@ -112,6 +112,15 @@ func (kb *knowledgeBase) Search(query string, route intent, routeTrusted bool) (
 	if len(queryTerms) == 0 {
 		return retrievalResult{}, false
 	}
+	if route == intentLinuxExpert || route == intentKnowledge {
+		if documentID := linuxConceptDocumentID(query); documentID != "" {
+			for _, indexed := range kb.documents {
+				if indexed.document.ID == documentID {
+					return retrievalResult{Document: indexed.document, Score: 1}, true
+				}
+			}
+		}
+	}
 	if route == intentLinuxExpert && isGenericLinuxHelpQuery(query) {
 		for _, indexed := range kb.documents {
 			if indexed.document.ID == "linux-help" {

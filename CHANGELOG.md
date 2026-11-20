@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 - 2026-11-20
+
+- Add a CPU-only Linux administration route with cited guidance for common service, storage, networking, permissions, package, SSH, and container tasks.
+- Add distro-aware diagnostic commands, read-only first steps, safe troubleshooting follow-ups, and sourced definitions for Linux, systemd, and SSH.
+- Expand browser examples and documentation for Linux help.
+
 ## 0.5.2 - 2026-11-20
 
 - Answer capability questions directly with a concrete list of supported tasks and limits instead of sending them to factual lookup.

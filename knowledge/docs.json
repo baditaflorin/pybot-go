@@ -254,5 +254,35 @@
     "source_url": "https://man7.org/linux/man-pages/man1/man.1.html",
     "extra_sources": [],
     "followups": {}
+  },
+  {
+    "id": "linux-overview",
+    "title": "What Linux is and what a Linux distribution includes",
+    "answer": "Linux is the kernel: the core software that manages hardware resources and provides services to programs. In everyday use, “Linux” often means a distribution that combines the kernel with system tools, libraries, applications, and a package manager. Ubuntu, Debian, and Fedora are distributions. Their setup and commands can differ, so include the distribution name and version when asking for help.",
+    "text": "linux kernel operating system distribution distro Ubuntu Debian Fedora GNU system tools libraries package manager hardware resources programs what is linux",
+    "source_title": "The Linux Kernel documentation: Introduction",
+    "source_url": "https://docs.kernel.org/process/1.Intro.html",
+    "extra_sources": [{"title":"GNU Project: Linux and the GNU System","url":"https://www.gnu.org/gnu/linux-and-gnu.html"}],
+    "followups": {}
+  },
+  {
+    "id": "linux-systemd-overview",
+    "title": "What systemd does on Linux",
+    "answer": "systemd is a system and service manager used by many Linux distributions. When it runs as process 1 during boot, it initializes userspace and manages services. The `systemctl` command is the usual interface for inspecting or managing system and service units. Some Linux distributions use a different init and service manager.",
+    "text": "linux systemd system service manager init PID process 1 boot userspace systemctl services unit what does systemd do",
+    "source_title": "systemd manual: systemd(1)",
+    "source_url": "https://freedesktop.org/software/systemd/man/latest/systemd.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-ssh-overview",
+    "title": "What SSH is used for",
+    "answer": "SSH, or Secure Shell, is a protocol for secure remote login and other network services. On Linux, `ssh user@host` typically starts a remote login using an SSH client; the server commonly runs `sshd`. Authentication may use a password or a key, depending on server policy. Never share a private key or password.",
+    "text": "linux SSH Secure Shell secure remote login protocol network services client ssh server sshd authentication password key what is SSH",
+    "source_title": "RFC 4251: The Secure Shell Protocol Architecture",
+    "source_url": "https://www.rfc-editor.org/info/rfc4251/",
+    "extra_sources": [],
+    "followups": {}
   }
 ]

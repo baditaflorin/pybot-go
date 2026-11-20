@@ -8,6 +8,7 @@ var linuxMarkers = []string{
 	"chmod", "chown", "umask", "fstab", "grub", "kernel", "initramfs", "nftables", "firewalld", "ufw", "lvm", "ext4", "btrfs", "zfs",
 	"uname", "lsblk", "findmnt", "journal", "crontab", "getent", "resolvectl", "ip route", "ss -", "df -", "du -", "ps aux", "ps -",
 	"linux server", "disk space", "disk full", "disk usage", "large files", "filesystem", "file system", "file permissions", "permission denied", "listening port", "open ports", "process using", "process uses port", "package manager", "package updates", "shell command", "system service", "system logs", "network route", "network not working", "network interface", "no internet", "dns resolution", "high cpu", "cpu usage", "memory pressure", "memory usage", "ram usage", "ssh connection", "mount point", "firewall rules", "docker",
+	"no space left on device", "connection refused", "connection timed out", "name or service not known", "temporary failure in name resolution", "could not resolve hostname", "command not found", "failed to start", "service failed", "unit not found", "cannot mount", "read-only file system", "out of memory", "oom killed", "killed process", "too many open files", "server is slow", "server slow",
 }
 
 var nonLinuxMarkers = []string{"windows", "powershell", "macos", "mac os", "os x"}
@@ -16,6 +17,9 @@ var nonLinuxMarkers = []string{"windows", "powershell", "macos", "mac os", "os x
 // administration terms. It supplies a retrieval-domain hint, never an answer.
 func isLinuxQuestion(text string) bool {
 	lower := strings.ToLower(text)
+	if isSimpleLinuxDefinitionQuestion(lower) {
+		return false
+	}
 	explicitLinux := strings.Contains(lower, "linux") || strings.Contains(lower, "ubuntu") || strings.Contains(lower, "debian") || strings.Contains(lower, "fedora") || strings.Contains(lower, "arch linux")
 	if !explicitLinux {
 		for _, marker := range nonLinuxMarkers {
@@ -30,6 +34,30 @@ func isLinuxQuestion(text string) bool {
 		}
 	}
 	return false
+}
+
+func isSimpleLinuxDefinitionQuestion(text string) bool {
+	normalized := strings.TrimSpace(strings.TrimRight(text, "?!.,"))
+	switch normalized {
+	case "what is linux", "what is ubuntu", "what is debian", "what is fedora", "what is arch linux":
+		return true
+	default:
+		return false
+	}
+}
+
+func linuxConceptDocumentID(text string) string {
+	normalized := strings.TrimSpace(strings.TrimRight(strings.ToLower(text), "?!.,"))
+	switch normalized {
+	case "what is linux", "what is ubuntu", "what is debian", "what is fedora", "what is arch linux":
+		return "linux-overview"
+	case "what is systemd", "what does systemd do":
+		return "linux-systemd-overview"
+	case "what is ssh", "what does ssh do", "what is secure shell":
+		return "linux-ssh-overview"
+	default:
+		return ""
+	}
 }
 
 func isGenericLinuxHelpQuery(text string) bool {
