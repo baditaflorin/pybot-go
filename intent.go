@@ -24,6 +24,7 @@ const (
 	intentThanks        intent = "thanks"
 	intentSmallTalk     intent = "small_talk"
 	intentKnowledge     intent = "knowledge_question"
+	intentLinuxExpert   intent = "linux_expert"
 )
 
 type intentExample struct {
@@ -118,6 +119,14 @@ var intentExamples = []intentExample{
 	{intentKnowledge, "what is romania"}, {intentKnowledge, "tell me about the country romania"},
 	{intentKnowledge, "who was marie curie"}, {intentKnowledge, "what does photosynthesis mean"},
 	{intentKnowledge, "where is the carpathian mountains"},
+
+	{intentLinuxExpert, "how do i troubleshoot a linux server"},
+	{intentLinuxExpert, "how do i check disk space on ubuntu"},
+	{intentLinuxExpert, "why is my systemd service failing"},
+	{intentLinuxExpert, "how do i see which process uses port 8080"},
+	{intentLinuxExpert, "how do i inspect linux logs and network configuration"},
+	{intentLinuxExpert, "explain chmod permissions on debian"},
+	{intentLinuxExpert, "how do i update packages on fedora"},
 
 	{intentOnion, "why do onions make you cry"},
 	{intentOnion, "why do onions make my eyes water"},

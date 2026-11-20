@@ -39,7 +39,8 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	}
 	messageIntent, intentScore := defaultIntentClassifier.classify(lower)
 	semanticAccepted := false
-	if hint := parseSemanticIntent(hintedIntent); hint != "" && confidence >= semanticRouteThreshold {
+	if hint := parseSemanticIntent(hintedIntent); hint != "" && confidence >= semanticRouteThreshold &&
+		(hint != intentLinuxExpert || isLinuxQuestion(lower)) {
 		// Similarity alone should not invent missing age context. Keep ranking
 		// routes tied to the words in the question and the facts in memory.
 		if hint != intentAgeRanking || isAgeRankingQuestion(lower, len(b.memory.ages())) ||
@@ -47,6 +48,12 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 			messageIntent, intentScore = hint, confidence
 			semanticAccepted = true
 		}
+	}
+	if isLinuxQuestion(lower) {
+		messageIntent, intentScore = intentLinuxExpert, 1
+	}
+	if linuxConceptDocumentID(lower) != "" {
+		messageIntent, intentScore = intentKnowledge, 1
 	}
 	routeTrusted := intentScore >= statisticalRouteThreshold || semanticAccepted
 
@@ -76,7 +83,7 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	}
 	if isCapabilityQuestion(lower) {
 		return Response{
-			Text:   "I can remember facts you tell me in this chat and answer follow-ups; compare or rank ages; calculate arithmetic and square roots; convert common units; and work out dates. I can answer a few built-in topics and look up other factual questions with a source link. For example, ask who is older, the square root of 2, or the capital of Romania. The CPU transformer helps match wording to these routes; it doesn't write answers. I don't use a generative LLM or GPU.",
+			Text:   "I can help troubleshoot Linux services, logs, disk usage, networking, permissions, SSH, packages, and Docker with sourced guidance and read-only first checks. I can remember facts you tell me in this chat and answer follow-ups; compare or rank ages; calculate arithmetic and square roots; convert common units; and work out dates. I can answer a few built-in topics and look up other factual questions with a source link. For example, ask who is older, the square root of 2, or the capital of Romania. The CPU transformer helps match wording to these routes; it doesn't write answers. I don't use a generative LLM or GPU.",
 			Module: "conversation/capabilities",
 		}
 	}
@@ -125,7 +132,7 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 
 func parseSemanticIntent(value string) intent {
 	switch intent(value) {
-	case intentAgeComparison, intentAgeRanking, intentArithmetic, intentConversion, intentDate, intentKnowledge:
+	case intentAgeComparison, intentAgeRanking, intentArithmetic, intentConversion, intentDate, intentKnowledge, intentLinuxExpert:
 		return intent(value)
 	default:
 		return ""
@@ -146,6 +153,7 @@ func isCapabilityQuestion(text string) bool {
 		"what can you do", "what you can do", "what can i ask", "what can i ask you", "what are you able to do",
 		"what are your capabilities", "what questions can you answer", "how can you help me",
 		"what kind of questions can you answer", "what do you do", "list your capabilities",
+		"what linux help can you provide", "what can i ask you about linux", "what can you do on linux",
 	} {
 		if strings.Contains(text, phrase) {
 			return true
@@ -250,5 +258,26 @@ func (b *Bot) answerFollowup(text string) (Response, bool) {
 		}
 		return Response{Text: "Which part do you mean? I don't have a more specific timing note for the previous answer.", Module: "memory/follow-up", NeedsClarification: true}, true
 	}
+	if isNextStepFollowup(text) && strings.HasPrefix(b.memory.lastKnowledgeID, "linux-") {
+		if answer, ok := b.knowledge.Followup(b.memory.lastKnowledgeID, "next_steps"); ok {
+			return answer, true
+		}
+		return Response{
+			Text:   "Tell me the Linux distribution and version, the exact command you ran, its complete error or output, and what changed recently. Redact passwords, tokens, private keys, and sensitive host details.",
+			Module: "linux/follow-up", NeedsClarification: true,
+		}, true
+	}
 	return Response{}, false
+}
+
+func isNextStepFollowup(text string) bool {
+	for _, phrase := range []string{
+		"what next", "what should i do next", "what should i try", "what do i try next",
+		"what if that doesn't work", "what if that does not work", "then what", "how do i troubleshoot that",
+	} {
+		if strings.Contains(text, phrase) {
+			return true
+		}
+	}
+	return false
 }

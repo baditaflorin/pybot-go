@@ -19,6 +19,13 @@
       "Where are the Carpathian Mountains?", "Explain what photosynthesis means.",
       "Give me a factual answer about a place, person, or concept.",
     ],
+    linux_expert: [
+      "How do I troubleshoot a Linux server?", "How can I check disk space on Ubuntu?",
+      "My systemd service failed. Which logs should I inspect?",
+      "How do I find the process listening on a port?", "Help me diagnose Linux DNS and routing.",
+      "Explain chmod 755 and file permissions.", "How do I safely update packages on Debian?",
+      "What should I check when SSH cannot connect?",
+    ],
     arithmetic: [
       "What is the square root of 2?", "Calculate 12 plus 4.",
       "What is 18 minus 6?", "Compute 8 times 7.", "Solve this math problem.",

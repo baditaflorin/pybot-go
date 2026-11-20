@@ -55,6 +55,10 @@ func solveUnitConversion(text string) (Response, bool) {
 
 	from, fromOK := unitAliases[normalizeUnit(fromText)]
 	to, toOK := unitAliases[normalizeUnit(toText)]
+	if !fromOK && !toOK && !strings.Contains(text, "convert") &&
+		!strings.Contains(text, "unit conversion") && !strings.Contains(text, "how many") && !strings.Contains(text, "how much") {
+		return Response{}, false
+	}
 	if !fromOK || !toOK {
 		return Response{Text: "I don't recognize one of those units. I support common length, mass, volume, and temperature units.", Module: "reasoning/unit-conversion", NeedsClarification: true}, true
 	}

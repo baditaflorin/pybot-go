@@ -10,8 +10,8 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./app.css">
     <script defer src="./wasm_exec.js"></script>
-    <script defer src="./semantic.js?v=0.5.1"></script>
-    <script defer src="./app.js?v=0.5.2"></script>
+    <script defer src="./semantic.js?v=0.6.0"></script>
+    <script defer src="./app.js?v=0.6.0"></script>
   </head>
   <body>
     <header class="topbar">
@@ -28,15 +28,14 @@
     <main class="layout">
       <section class="intro" aria-labelledby="page-title">
         <p class="eyebrow"><span class="eyebrow-line"></span> CPU-only · no LLM</p>
-        <h1 id="page-title">A small bot.<br><span>Clear answers.</span></h1>
-        <p class="intro-copy">Try age-aware follow-ups, exact math, and cited facts. A small transformer helps route meaning on your CPU; Go solvers and sourced retrieval provide the answers. No LLM or GPU.</p>
+        <h1 id="page-title">Practical Linux help.<br><span>Clear next steps.</span></h1>
+        <p class="intro-copy">Ask about Linux services, logs, storage, networking, permissions, SSH, and packages. PyBot explains commands, starts with read-only diagnostics, and links its manuals. Include your distribution and version for distro-specific advice. CPU only; no generative LLM or GPU.</p>
         <div class="capability-row" aria-label="Capabilities">
-          <span>Age comparison</span>
-          <span>Smart follow-ups</span>
-          <span>Exact math</span>
-          <span>Square roots</span>
-          <span>Unit conversion</span>
-          <span>Date math</span>
+          <span>Linux troubleshooting</span>
+          <span>Safe diagnostics</span>
+          <span>Command explanations</span>
+          <span>Age follow-ups</span>
+          <span>Math and conversions</span>
           <span>Sourced answers</span>
         </div>
       </section>
@@ -89,38 +88,38 @@
             <span class="sparkle" aria-hidden="true">✳</span>
           </div>
           <div class="prompt-list">
-            <button class="prompt-card" type="button" data-prompt="Alice is 12 years old. Bob is 50 years old. Who is older?">
+            <button class="prompt-card" type="button" data-prompt="My systemd service failed. What should I check first?">
               <span class="prompt-icon icon-people" aria-hidden="true">↗</span>
+              <span><strong>Diagnose a service</strong><small>My systemd service failed. What should I check?</small></span>
+              <span class="prompt-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="prompt-card" type="button" data-prompt="How do I check what is using disk space on Ubuntu?">
+              <span class="prompt-icon icon-math" aria-hidden="true">∑</span>
+              <span><strong>Find disk usage</strong><small>What is using space on Ubuntu?</small></span>
+              <span class="prompt-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="prompt-card" type="button" data-prompt="Which process is listening on port 8080 in Linux?">
+              <span class="prompt-icon icon-math" aria-hidden="true">√</span>
+              <span><strong>Inspect a port</strong><small>Which process owns port 8080?</small></span>
+              <span class="prompt-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="prompt-card" type="button" data-prompt="What does chmod 755 mean?">
+              <span class="prompt-icon icon-units" aria-hidden="true">↔</span>
+              <span><strong>Explain permissions</strong><small>What does chmod 755 allow?</small></span>
+              <span class="prompt-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="prompt-card" type="button" data-prompt="I cannot resolve a DNS name on Debian. What should I check?">
+              <span class="prompt-icon icon-source" aria-hidden="true">⌕</span>
+              <span><strong>Troubleshoot DNS</strong><small>I cannot resolve a name on Debian.</small></span>
+              <span class="prompt-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="prompt-card" type="button" data-prompt="Alice is 12 years old. Bob is 50 years old. Who is older?">
+              <span class="prompt-icon icon-source" aria-hidden="true">⌕</span>
               <span><strong>Compare ages</strong><small>Alice is 12, Bob is 50. Who is older?</small></span>
               <span class="prompt-arrow" aria-hidden="true">→</span>
             </button>
-            <button class="prompt-card" type="button" data-prompt="What is (18 + 6) / 3?">
-              <span class="prompt-icon icon-math" aria-hidden="true">∑</span>
-              <span><strong>Calculate exactly</strong><small>What is (18 + 6) / 3?</small></span>
-              <span class="prompt-arrow" aria-hidden="true">→</span>
-            </button>
-            <button class="prompt-card" type="button" data-prompt="What is the square root of 2?">
-              <span class="prompt-icon icon-math" aria-hidden="true">√</span>
-              <span><strong>Approximate a root</strong><small>What is the square root of 2?</small></span>
-              <span class="prompt-arrow" aria-hidden="true">→</span>
-            </button>
-            <button class="prompt-card" type="button" data-prompt="How many inches are in 2 meters?">
-              <span class="prompt-icon icon-units" aria-hidden="true">↔</span>
-              <span><strong>Convert units</strong><small>How many inches in 2 meters?</small></span>
-              <span class="prompt-arrow" aria-hidden="true">→</span>
-            </button>
-            <button class="prompt-card" type="button" data-prompt="Why do onions make my eyes water when I cut them?">
-              <span class="prompt-icon icon-source" aria-hidden="true">⌕</span>
-              <span><strong>Ask a sourced question</strong><small>Why do onions make eyes water?</small></span>
-              <span class="prompt-arrow" aria-hidden="true">→</span>
-            </button>
-            <button class="prompt-card" type="button" data-prompt="What is Romania?">
-              <span class="prompt-icon icon-source" aria-hidden="true">⌕</span>
-              <span><strong>Ask about a place</strong><small>What is Romania?</small></span>
-              <span class="prompt-arrow" aria-hidden="true">→</span>
-            </button>
           </div>
-          <p class="try-note"><span class="note-check" aria-hidden="true">✓</span> The CPU model downloads on first use (about 23 MB) and runs locally. If a factual question is outside PyBot’s small library, only that question is sent to Wikipedia; the answer includes its source link.</p>
+          <p class="try-note"><span class="note-check" aria-hidden="true">✓</span> Linux help comes from a curated local library with source links. Include your distro/version and exact error for tailored steps. PyBot does not run commands; it starts with read-only checks and asks before risky changes.</p>
         </aside>
       </section>
 

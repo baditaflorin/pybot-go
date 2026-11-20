@@ -112,9 +112,28 @@ func (kb *knowledgeBase) Search(query string, route intent, routeTrusted bool) (
 	if len(queryTerms) == 0 {
 		return retrievalResult{}, false
 	}
+	if route == intentLinuxExpert || route == intentKnowledge {
+		if documentID := linuxConceptDocumentID(query); documentID != "" {
+			for _, indexed := range kb.documents {
+				if indexed.document.ID == documentID {
+					return retrievalResult{Document: indexed.document, Score: 1}, true
+				}
+			}
+		}
+	}
+	if route == intentLinuxExpert && isGenericLinuxHelpQuery(query) {
+		for _, indexed := range kb.documents {
+			if indexed.document.ID == "linux-help" {
+				return retrievalResult{Document: indexed.document, Score: 1}, true
+			}
+		}
+	}
 	searchTerms := append([]string(nil), queryTerms...)
 	if routeTrusted {
 		searchTerms = append(searchTerms, intentTerms(route)...)
+	}
+	if route == intentLinuxExpert {
+		searchTerms = append(searchTerms, linuxSearchTerms(query)...)
 	}
 	searchTerms = uniqueTerms(searchTerms)
 
@@ -196,6 +215,35 @@ func intentTerms(route intent) []string {
 	default:
 		return nil
 	}
+}
+
+func linuxSearchTerms(query string) []string {
+	text := strings.ToLower(query)
+	terms := make([]string, 0, 12)
+	addWhen := func(markers []string, additions ...string) {
+		for _, marker := range markers {
+			if strings.Contains(text, marker) {
+				terms = append(terms, additions...)
+				return
+			}
+		}
+	}
+	addWhen([]string{"systemd", "systemctl", "service", "unit", "failed", "failure"}, "systemctl", "journalctl", "unit", "status", "failure")
+	addWhen([]string{"journal", "log", "boot", "kernel message"}, "journalctl", "kernel", "warning", "error")
+	addWhen([]string{"disk", "space", "inode", "storage", "full"}, "filesystem", "df", "usage", "inode")
+	addWhen([]string{"large file", "big file", "find file", "files taking"}, "find", "size", "file", "large")
+	addWhen([]string{"process", "cpu", "memory", "ram", "load", "slow"}, "ps", "free", "uptime", "process")
+	addWhen([]string{"port", "listen", "socket", "tcp", "udp"}, "ss", "socket", "tcp", "udp")
+	addWhen([]string{"dns", "resolve", "hostname", "resolv"}, "getent", "resolvectl", "resolver")
+	addWhen([]string{"route", "gateway", "internet", "interface", "network"}, "ip", "route", "address", "curl")
+	addWhen([]string{"chmod", "permission", "owner", "chown", "access denied"}, "chmod", "owner", "mode", "namei")
+	addWhen([]string{"apt", "dnf", "pacman", "update", "upgrade", "package"}, "package", "apt", "dnf", "pacman")
+	addWhen([]string{"ssh", "key", "login", "authentication"}, "ssh", "sshd", "authentication", "verbose")
+	addWhen([]string{"firewall", "ufw", "nft", "blocked"}, "firewall", "nft", "ufw", "rules")
+	addWhen([]string{"mount", "partition", "filesystem", "fstab", "lsblk"}, "findmnt", "lsblk", "device", "partition")
+	addWhen([]string{"docker", "volume", "container"}, "docker", "volume", "image", "prune")
+	addWhen([]string{"man ", "manual", "--help"}, "man", "manual", "help", "option")
+	return uniqueTerms(terms)
 }
 
 func retrievalTokens(text string) []string {
