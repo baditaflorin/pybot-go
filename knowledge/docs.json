@@ -34,5 +34,225 @@
       {"title": "USDA FSIS: Why use a food thermometer for eggs?", "url": "https://ask.fsis.usda.gov/article/Why-is-it-so-important-that-people-use-a-food-thermometer-when-cooking-meat-poultry-and-eggs"}
     ],
     "followups": {}
+  },
+  {
+    "id": "linux-help",
+    "title": "Linux troubleshooting help",
+    "answer": "I can help with Linux administration. Tell me your distribution and version, what you want to do, and the exact error or command output. I start with read-only checks and explain before suggesting a change. Redact passwords, tokens, private keys, and sensitive host details before sharing output.",
+    "text": "linux expert help troubleshooting debug diagnose administration server workstation distribution release exact error command output terminal read-only safe",
+    "source_title": "Linux manual pages project",
+    "source_url": "https://man7.org/linux/man-pages/",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-identify-system",
+    "title": "Identify the Linux distribution, release, kernel, and architecture",
+    "answer": "Run `cat /etc/os-release` to identify the distribution and release, `uname -r` for the running kernel, and `uname -m` for the CPU architecture. These commands only read system information. Include their output when asking for distribution-specific instructions.",
+    "text": "linux OS distro distribution release version kernel architecture CPU machine identify what operating system running cat etc os release uname -r -m",
+    "source_title": "Linux man-pages: os-release(5)",
+    "source_url": "https://man7.org/linux/man-pages/man5/os-release.5.html",
+    "extra_sources": [{"title":"Linux man-pages: uname(1)","url":"https://man7.org/linux/man-pages/man1/uname.1.html"}],
+    "followups": {}
+  },
+  {
+    "id": "linux-filesystem-space",
+    "title": "Check free filesystem space and inodes",
+    "answer": "Run `df -hT` to see human-readable space usage and filesystem types for mounted filesystems. Run `df -i` to check inode usage; a filesystem can run out of inodes even when bytes remain. To find which top-level directories use space under `/var`, run `sudo du -x -h --max-depth=1 /var | sort -h`. These are inspection commands; review the results before deleting anything.",
+    "text": "linux disk full low storage space filesystem partition root mount free available df -h df -hT inodes inode df -i du usage disk usage largest directory folder full root var",
+    "source_title": "Linux man-pages: df(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/df.1.html",
+    "extra_sources": [{"title":"GNU Coreutils: du invocation","url":"https://www.gnu.org/software/coreutils/manual/html_node/du-invocation.html"}],
+    "followups": {"next_steps":"Share `df -hT` and `df -i` for the affected mount, plus the largest few lines from `sudo du -x -h --max-depth=1 /var | sort -h`. Redact hostnames or paths that identify sensitive services. I can help decide what is safe to clean; don't remove files just because they are large."}
+  },
+  {
+    "id": "linux-find-large-files",
+    "title": "Find large files without deleting them",
+    "answer": "To list files larger than 1 GiB under `/var` without crossing into another mounted filesystem, run `sudo find /var -xdev -type f -size +1G -print`. This scans files and prints paths; it does not remove them. Narrow the starting directory if the filesystem is large, and inspect each result before taking action.",
+    "text": "linux find locate identify search biggest large files files taking disk space storage usage size gigabytes GB find command scan directory no delete",
+    "source_title": "Linux man-pages: find(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/find.1.html",
+    "extra_sources": [],
+    "followups": {"next_steps":"First confirm the exact path and which process owns it with `stat /path/to/file` and `sudo lsof -- /path/to/file` if installed. Don't delete database, journal, or application data files until you know what uses them and have a recovery plan."}
+  },
+  {
+    "id": "linux-systemd-service-failure",
+    "title": "Diagnose a failed systemd service",
+    "answer": "Start with read-only checks: `systemctl status SERVICE --no-pager -l` and `journalctl -u SERVICE -b --no-pager -n 100`. Replace `SERVICE` with the unit name, such as `nginx.service`. Check the first error and the timestamp; don't restart a critical service until you understand the impact. Redact credentials and tokens before sharing logs.",
+    "text": "linux systemd service unit failed won't start crash error status inactive activating failing debugging logs journalctl systemctl status service daemon",
+    "source_title": "Linux man-pages: systemctl(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html",
+    "extra_sources": [{"title":"Linux man-pages: journalctl(1)","url":"https://man7.org/linux/man-pages/man1/journalctl.1.html"}],
+    "followups": {"next_steps":"Share the unit name, `systemctl status SERVICE --no-pager -l`, and the last 50–100 lines from `journalctl -u SERVICE -b --no-pager -n 100`. Include the Linux distribution and what changed before the failure. Remove secrets, tokens, and private host details first."}
+  },
+  {
+    "id": "linux-journal-logs",
+    "title": "Read systemd and boot logs",
+    "answer": "For warnings and errors from the current boot, run `journalctl -b -p warning..alert --no-pager`. For kernel messages, use `journalctl -k -b --no-pager`. To inspect the previous boot, use `journalctl -b -1 --no-pager` if those logs were retained. Journal output may contain sensitive values, so redact it before posting.",
+    "text": "linux logs log files systemd journal boot current previous boot kernel warning error inspect journalctl dmesg messages",
+    "source_title": "Linux man-pages: journalctl(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/journalctl.1.html",
+    "extra_sources": [],
+    "followups": {"next_steps":"Narrow the log to the affected service or time window with `journalctl -u SERVICE --since '30 minutes ago' --no-pager`. Tell me the unit name and paste only the relevant redacted error lines."}
+  },
+  {
+    "id": "linux-process-cpu",
+    "title": "Find processes using CPU or memory",
+    "answer": "For the busiest CPU processes, run `ps -eo pid,ppid,%cpu,%mem,stat,comm --sort=-%cpu | head`. Change the sort key to `%mem` to rank by memory. `uptime` shows load averages; `top` gives a live view. These commands inspect processes and do not stop them. Identify a process and its owner before considering a restart or signal.",
+    "text": "linux process PID high CPU usage memory RAM slow server performance top ps aux sort process list running resource utilization load average",
+    "source_title": "Linux man-pages: ps(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/ps.1.html",
+    "extra_sources": [],
+    "followups": {"next_steps":"Share the top few rows from `ps -eo pid,ppid,%cpu,%mem,stat,comm --sort=-%cpu | head` and `uptime`. If memory is the issue, also share `free -h`. Redact command arguments that may contain passwords or tokens."}
+  },
+  {
+    "id": "linux-memory-pressure",
+    "title": "Check Linux memory and swap",
+    "answer": "Run `free -h` for RAM and swap totals, and `swapon --show` to list active swap devices. Linux uses spare memory for cache, so a low `free` column alone does not prove memory pressure; look at `available`, swap activity, and whether processes are being killed. `vmstat 1 5` provides a short read-only activity sample.",
+    "text": "linux RAM memory low out of memory OOM swap swapping cache free available vmstat physical memory process killed",
+    "source_title": "Linux man-pages: free(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/free.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-listening-ports",
+    "title": "See listening ports and the owning process",
+    "answer": "Run `sudo ss -lntup` to list listening TCP and UDP sockets and, with sufficient privilege, the owning process. `-l` means listening, `-n` keeps numeric addresses and ports, and `-t`/`-u` select TCP/UDP. To look for one port, use `sudo ss -lntup '( sport = :8080 )'`. This inspects sockets; it does not open or close a port.",
+    "text": "linux network open listening port socket port 8080 which process uses binds listens tcp udp ss netstat occupied in use",
+    "source_title": "Linux man-pages: ss(8)",
+    "source_url": "https://man7.org/linux/man-pages/man8/ss.8.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-network-basics",
+    "title": "Diagnose basic Linux network connectivity",
+    "answer": "Check each layer with read-only commands: `ip -br address` shows interface addresses, `ip route` shows routes, `getent hosts example.com` checks name resolution through the system's configured NSS sources, and `curl -I --max-time 10 https://example.com` checks an HTTPS connection. Replace the example host with the affected destination. Share the first command that fails and its exact output.",
+    "text": "linux network no internet connectivity interface address IP route gateway routing connection curl ping networkmanager troubleshoot",
+    "source_title": "Linux man-pages: ip(8)",
+    "source_url": "https://man7.org/linux/man-pages/man8/ip.8.html",
+    "extra_sources": [{"title":"Linux man-pages: getent(1)","url":"https://man7.org/linux/man-pages/man1/getent.1.html"}],
+    "followups": {"next_steps":"Tell me whether the problem affects one host or all hosts, the distribution, and which of `ip -br address`, `ip route`, `getent hosts HOST`, or `curl -I HOST` fails. Redact public IPs and internal hostnames if needed."}
+  },
+  {
+    "id": "linux-dns",
+    "title": "Troubleshoot Linux DNS resolution",
+    "answer": "Test the system resolver with `getent ahosts example.com`. On systems using systemd-resolved, inspect configuration with `resolvectl status` and query with `resolvectl query example.com`. If those commands are unavailable, tell me the distribution and resolver; don't overwrite `/etc/resolv.conf` until you know which service manages it.",
+    "text": "linux DNS domain name resolution lookup hostname cannot resolve getent resolvectl systemd resolved nameserver resolv.conf error",
+    "source_title": "Linux man-pages: getent(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/getent.1.html",
+    "extra_sources": [{"title":"systemd: resolvectl","url":"https://www.freedesktop.org/software/systemd/man/latest/resolvectl.html"}],
+    "followups": {}
+  },
+  {
+    "id": "linux-chmod-755",
+    "title": "Understand chmod 755 permissions",
+    "answer": "Mode `755` gives the owner read, write, and execute permissions (`7`); the group and everyone else get read and execute (`5`). For a directory, execute means permission to traverse it. Check a path before changing it with `stat -c '%A %a %U:%G %n' FILE`. Avoid `chmod 777`: it grants write access to everyone and rarely fixes the underlying ownership problem.",
+    "text": "linux chmod permission mode 755 777 rwx owner user group others read write execute directory octal file permissions",
+    "source_title": "Linux man-pages: chmod(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/chmod.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-permission-denied",
+    "title": "Diagnose permission denied errors",
+    "answer": "Inspect the path and identity before changing permissions: run `id`, `stat -c '%A %a %U:%G %n' /path/to/file`, and `namei -l /path/to/file` to see ownership and each directory's permissions. Share the exact command and error. Don't use recursive `chmod` or `chown` as a blanket fix; it can expose files or break services.",
+    "text": "linux permission denied access error cannot read write execute file directory ownership owner group chmod chown id namei path access control",
+    "source_title": "Linux man-pages: chmod(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/chmod.1.html",
+    "extra_sources": [{"title":"Linux man-pages: chown(1)","url":"https://man7.org/linux/man-pages/man1/chown.1.html"}],
+    "followups": {}
+  },
+  {
+    "id": "linux-package-updates",
+    "title": "Update packages using the system's Linux distribution",
+    "answer": "Package commands depend on the distribution; don't mix them. On Debian or Ubuntu, `sudo apt update` refreshes package indexes and `apt list --upgradable` previews available updates; `sudo apt upgrade` installs them. On Fedora, `sudo dnf upgrade --refresh` updates packages. On Arch Linux, `sudo pacman -Syu` synchronizes repositories and upgrades the system. Confirm the distribution and maintenance window before changing a production machine.",
+    "text": "linux update upgrade install packages package manager apt apt-get Debian Ubuntu Fedora dnf Arch pacman repository security updates software distribution",
+    "source_title": "Debian manpages: apt(8)",
+    "source_url": "https://manpages.debian.org/stable/apt/apt.8.en.html",
+    "extra_sources": [{"title":"Fedora Docs: Updating and upgrading packages","url":"https://docs.fedoraproject.org/en-US/quick-docs/updating-upgrading-packages/"},{"title":"ArchWiki: System maintenance","url":"https://wiki.archlinux.org/title/System_maintenance"}],
+    "followups": {}
+  },
+  {
+    "id": "linux-find-files",
+    "title": "Find a file by name",
+    "answer": "Use `find /etc -type f -name 'sshd_config' -print` to search under `/etc` for a regular file with that exact name. Replace `/etc` with the smallest likely starting directory and quote names containing spaces or wildcard characters. The command lists matches and does not modify files; a search from `/` can take time and may require `sudo` for some directories.",
+    "text": "linux find search locate file by name filename directory path where is config sshd_config locate command recursively list",
+    "source_title": "Linux man-pages: find(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/find.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-mounts",
+    "title": "Inspect disks, partitions, and mount points",
+    "answer": "Run `lsblk -f` to see block devices and filesystem labels, then `findmnt --target /path` to identify which filesystem backs a path. These commands inspect configuration and mounts. Don't run `mkfs`, `fsck`, or edit `/etc/fstab` until the exact device, filesystem, and whether it is mounted are confirmed; a wrong device can destroy data.",
+    "text": "linux disk drive partition block device mount point mounted filesystem lsblk findmnt fstab storage USB UUID device name",
+    "source_title": "Linux man-pages: findmnt(8)",
+    "source_url": "https://man7.org/linux/man-pages/man8/findmnt.8.html",
+    "extra_sources": [{"title":"Linux man-pages: lsblk(8)","url":"https://man7.org/linux/man-pages/man8/lsblk.8.html"}],
+    "followups": {}
+  },
+  {
+    "id": "linux-ssh-debug",
+    "title": "Diagnose an SSH connection failure",
+    "answer": "Run `ssh -vvv user@host` to see where the client connection fails; use the real user and host. Check reachability and server port separately, and verify the server's SSH service and firewall from a trusted console if you have access. Do not paste private keys, passwords, tokens, or unredacted verbose output; it can expose usernames and host details.",
+    "text": "linux SSH cannot connect connection refused timeout permission denied public key authentication sshd server client debug verbose login",
+    "source_title": "OpenSSH manual: ssh(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html",
+    "extra_sources": [{"title":"OpenSSH manual: sshd(8)","url":"https://man7.org/linux/man-pages/man8/sshd.8.html"}],
+    "followups": {"next_steps":"Share the exact SSH error and the last relevant lines from `ssh -vvv user@host`, with usernames, addresses, and key paths redacted. Say whether the client and server are on the same network and whether the server is Linux."}
+  },
+  {
+    "id": "linux-firewall-status",
+    "title": "Inspect Linux firewall rules safely",
+    "answer": "First identify which firewall manager is active. On Ubuntu with UFW, `sudo ufw status verbose` reads its status. On systems managed directly with nftables, `sudo nft list ruleset` lists rules without changing them. Don't flush rules or disable the firewall to troubleshoot a port; inspect the specific source, destination, protocol, and port instead.",
+    "text": "linux firewall port blocked packet filter ufw nftables nft ruleset firewalld inspect status allow deny network security",
+    "source_title": "Ubuntu manual pages: ufw(8)",
+    "source_url": "https://manpages.ubuntu.com/manpages/noble/en/man8/ufw.8.html",
+    "extra_sources": [{"title":"Linux man-pages: nft(8)","url":"https://man7.org/linux/man-pages/man8/nft.8.html"}],
+    "followups": {}
+  },
+  {
+    "id": "linux-log-storage",
+    "title": "Check how much space Linux logs use",
+    "answer": "For systemd journal usage, run `journalctl --disk-usage`. To inspect traditional log directories, run `sudo du -x -h --max-depth=1 /var/log | sort -h`. Don't delete active log files manually; identify the service and its log-rotation policy first. Journal cleanup commands remove archived logs and should be used only after checking retention needs.",
+    "text": "linux log logs disk space storage full var log journalctl disk usage large journal logs rotation clean remove archived log files",
+    "source_title": "Linux man-pages: journalctl(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/journalctl.1.html",
+    "extra_sources": [{"title":"GNU Coreutils: du invocation","url":"https://www.gnu.org/software/coreutils/manual/html_node/du-invocation.html"}],
+    "followups": {}
+  },
+  {
+    "id": "linux-deleted-open-files",
+    "title": "Find deleted files still held open by a process",
+    "answer": "If `df` reports a full filesystem but `du` cannot account for the space, a process may still hold an unlinked file open. If `lsof` is installed, `sudo lsof +L1` lists open files with link count below one. Identify the process and service before restarting it; the data is released when the file descriptor closes, but restarting can interrupt work.",
+    "text": "linux disk full df du missing usage deleted removed file still open process descriptor lsof space not freed inode unlinked file",
+    "source_title": "lsof manual page",
+    "source_url": "https://man7.org/linux/man-pages/man8/lsof.8.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-docker-storage",
+    "title": "Inspect Docker storage before cleanup",
+    "answer": "Use `docker system df -v` to inspect Docker image, container, build-cache, and volume usage before cleanup. Do not start with `docker system prune --volumes`: it can delete data stored in unused volumes. Identify which project owns large images or volumes and verify backups before removing anything.",
+    "text": "linux Docker disk space storage full docker system df images containers build cache volumes prune cleanup delete data containers",
+    "source_title": "Docker documentation: Prune unused Docker objects",
+    "source_url": "https://docs.docker.com/engine/manage-resources/pruning/",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-man-pages",
+    "title": "Get built-in help for a Linux command",
+    "answer": "Use `man COMMAND` to open a command's manual page, or `COMMAND --help` for a short option summary when supported. For example, `man journalctl` explains journal filters and `man find` explains search predicates. Tell me the command name and the task you want to perform if you want me to explain the relevant options.",
+    "text": "linux help manual man page documentation usage options command line CLI command syntax what does flag mean help",
+    "source_title": "Linux man-pages: man(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/man.1.html",
+    "extra_sources": [],
+    "followups": {}
   }
 ]
