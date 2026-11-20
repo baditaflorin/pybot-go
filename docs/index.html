@@ -10,8 +10,8 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./app.css">
     <script defer src="./wasm_exec.js"></script>
-    <script defer src="./semantic.js?v=0.6.1"></script>
-    <script defer src="./app.js?v=0.6.1"></script>
+    <script defer src="./semantic.js?v=0.7.0"></script>
+    <script defer src="./app.js?v=0.7.0"></script>
   </head>
   <body>
     <header class="topbar">
@@ -29,11 +29,12 @@
       <section class="intro" aria-labelledby="page-title">
         <p class="eyebrow"><span class="eyebrow-line"></span> CPU-only · no LLM</p>
         <h1 id="page-title">Practical Linux help.<br><span>Clear next steps.</span></h1>
-        <p class="intro-copy">Ask about Linux services, logs, storage, networking, permissions, SSH, and packages. PyBot explains commands, starts with read-only diagnostics, and links its manuals. Include your distribution and version for distro-specific advice. CPU only; no generative LLM or GPU.</p>
+        <p class="intro-copy">Ask about Linux services, logs, storage, networking, permissions, SSH, and packages. PyBot explains commands, starts with read-only diagnostics, and links its manuals. Follow up on an answer naturally; this tab remembers up to 24 turns. Include your distribution and version for tailored steps. CPU only; no generative LLM or GPU.</p>
         <div class="capability-row" aria-label="Capabilities">
           <span>Linux troubleshooting</span>
           <span>Safe diagnostics</span>
           <span>Command explanations</span>
+          <span>Turn-by-turn context</span>
           <span>Age follow-ups</span>
           <span>Math and conversions</span>
           <span>Sourced answers</span>
@@ -50,10 +51,13 @@
                 <div class="runtime-status" id="runtime-status" role="status"><span class="status-dot loading"></span><span>Loading browser runtime…</span></div>
               </div>
             </div>
-            <button class="reset-button" id="reset-button" type="button" title="Clear this conversation" disabled>
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 5.5h11M8 5.5V4h4v1.5m2.5 0-.6 10H6.1l-.6-10M8.2 8v5m3.6-5v5"/></svg>
-              <span>New chat</span>
-            </button>
+            <div class="chat-actions">
+              <button class="export-button" id="export-button" type="button" title="Download this conversation" disabled>Export</button>
+              <button class="reset-button" id="reset-button" type="button" title="Clear this conversation" disabled>
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 5.5h11M8 5.5V4h4v1.5m2.5 0-.6 10H6.1l-.6-10M8.2 8v5m3.6-5v5"/></svg>
+                <span>New chat</span>
+              </button>
+            </div>
           </div>
 
           <div class="messages" id="messages" aria-live="polite" aria-relevant="additions text">
@@ -64,13 +68,14 @@
                 <div class="bubble">Hi. Tell me a fact, ask a calculation, or try a sourced question. I’ll show which capability handled it.</div>
               </div>
             </article>
+            <div class="thinking-indicator" id="thinking-indicator" role="status" hidden><span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Checking the local model…</span></div>
           </div>
 
           <form class="composer" id="composer">
             <label class="visually-hidden" for="prompt">Your message</label>
             <textarea id="prompt" name="prompt" rows="1" maxlength="2000" placeholder="Ask PyBot something…" autocomplete="off" spellcheck="true" disabled></textarea>
             <div class="composer-footer">
-              <span class="input-hint">Enter to send <span aria-hidden="true">·</span> Shift + Enter for a new line</span>
+              <div class="input-hints"><span class="input-hint">Enter to send <span aria-hidden="true">·</span> Shift + Enter for a new line</span><span class="message-counter" id="message-counter" aria-live="off">0 / 2,000</span></div>
               <button class="send-button" id="send-button" type="submit" aria-label="Send message" disabled>
                 <span>Send</span>
                 <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 10h12m-5-5 5 5-5 5"/></svg>
@@ -125,7 +130,7 @@
 
       <footer class="page-footer">
         <span>Built with Go · WebAssembly · CPU embeddings</span>
-        <span>Conversation memory clears when you start a new chat or reload.</span>
+        <span>This tab keeps up to 24 turns in session storage. New chat clears them.</span>
       </footer>
     </main>
   </body>

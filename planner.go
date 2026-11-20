@@ -21,7 +21,7 @@ func (b *Bot) ReplyWithSemanticHint(input, hintedIntent string, confidence float
 	return b.replyWithSemanticHint(input, hintedIntent, confidence)
 }
 
-func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float64) Response {
+func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float64) (response Response) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
@@ -30,7 +30,24 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 		return Response{Text: "Send me a question or a fact to work with.", Module: "conversation/empty"}
 	}
 	updates := b.memory.remember(text)
+	defer func() {
+		if len(response.Suggestions) == 0 {
+			response.Suggestions = suggestedFollowups(response)
+		}
+		b.memory.completeTurn(text, response)
+	}()
 	lower := normalizeText(text)
+	if response, handled := b.answerExternalFollowup(lower); handled {
+		return response
+	}
+	if response, handled := b.answerContextControl(lower); handled {
+		return response
+	}
+	if isLinuxEnvironmentReply(lower) {
+		if response, handled := b.answerLinuxEnvironmentFollowup(lower); handled {
+			return response
+		}
+	}
 	if pronoun := unresolvedAgePronoun(lower); pronoun != "" {
 		return Response{
 			Text:   fmt.Sprintf("Who do you mean by %q? Tell me the person's name so I don't attach the age to the wrong person.", pronoun),
@@ -56,6 +73,11 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 		messageIntent, intentScore = intentKnowledge, 1
 	}
 	routeTrusted := intentScore >= statisticalRouteThreshold || semanticAccepted
+	if messageIntent == intentContextFollowup && routeTrusted {
+		if response, handled := b.answerSemanticContextFollowup(lower); handled {
+			return response
+		}
+	}
 
 	if isAgeRankingQuestion(lower, len(b.memory.ages())) || (messageIntent == intentAgeRanking && routeTrusted) {
 		return b.answerAgeRanking(lower)
@@ -84,7 +106,7 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	}
 	if isCapabilityQuestion(lower) {
 		return Response{
-			Text:   "I can help troubleshoot Linux services, logs, disk usage, networking, permissions, SSH, packages, and Docker with sourced guidance and read-only first checks. I can remember facts you tell me in this chat and answer follow-ups; compare or rank ages; calculate arithmetic and square roots; convert common units; and work out dates. I can answer a few built-in topics and look up other factual questions with a source link. For example, ask who is older, the square root of 2, or the capital of Romania. The CPU transformer helps match wording to these routes; it doesn't write answers. I don't use a generative LLM or GPU.",
+			Text:   "I can help troubleshoot Linux services, logs, disk usage, networking, permissions, SSH, packages, and Docker with sourced guidance and read-only first checks. I can remember facts you tell me and handle follow-ups about previous answers: repeat or shorten them, explain a command, or show the sources. I can compare ages, rank people, calculate arithmetic and square roots, convert common units, and work out dates. In the browser, the last 24 turns stay in this tab and can be exported; ask what I remember or tell me to forget a saved detail. I can answer a few built-in topics and look up other factual questions with a source link. For example, ask who is older, the square root of 2, or the capital of Romania. The CPU transformer helps match wording to these routes; it doesn't write answers. I don't use a generative LLM or GPU.",
 			Module: "conversation/capabilities",
 		}
 	}
@@ -110,7 +132,11 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	if strings.Contains(lower, "how are you") || (messageIntent == intentSmallTalk && routeTrusted) {
 		return Response{Text: "I'm running fine. What would you like to work out?", Module: "conversation/small-talk"}
 	}
-	if result, found := b.knowledge.Search(lower, messageIntent, routeTrusted); found {
+	searchQuery := lower
+	if messageIntent == intentLinuxExpert && linuxDistro(lower) == "" && b.memory.linuxDistribution() != "" {
+		searchQuery += " on " + b.memory.linuxDistribution()
+	}
+	if result, found := b.knowledge.Search(searchQuery, messageIntent, routeTrusted); found {
 		if len(result.Ambiguous) > 0 {
 			return Response{
 				Text:   fmt.Sprintf("I found two likely topics: %s and %s. Which one do you mean?", result.Ambiguous[0].Title, result.Ambiguous[1].Title),
@@ -131,10 +157,36 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	}
 }
 
+func isLinuxEnvironmentReply(text string) bool {
+	if containsAny(text, "windows", "macos", "mac os", "freebsd") &&
+		(len(strings.Fields(text)) <= 5 || containsAny(text, "what about", "same on", "and on", "i use", "i'm on", "i am on")) {
+		return true
+	}
+	if linuxDistro(text) == "" {
+		return false
+	}
+	if len(strings.Fields(text)) > 7 || containsAny(text, "update packages", "install packages", "failed service", "disk space", "dns", "ssh", "permissions", "what is", "how do i", "how can i", "what should") {
+		return false
+	}
+	if containsAny(text, "what about", "same on", "and on", "running", "i use", "i'm on", "i am on", "my system is") {
+		return true
+	}
+	if len(strings.Fields(text)) <= 3 && !strings.HasPrefix(text, "what is ") && !strings.HasPrefix(text, "what's ") {
+		return true
+	}
+	return false
+}
+
+func isLinuxEnvironmentStatement(text string) bool {
+	return containsAny(text, "i use", "i'm on", "i am on", "i run", "i'm running", "i am running", "my system is", "my server is", "my laptop is", "running ")
+}
+
 func parseSemanticIntent(value string) intent {
 	switch intent(value) {
 	case intentAgeComparison, intentAgeRanking, intentArithmetic, intentConversion, intentDate, intentKnowledge, intentLinuxExpert:
 		return intent(value)
+	case intentContextFollowup:
+		return intentContextFollowup
 	default:
 		return ""
 	}
@@ -230,6 +282,9 @@ func (b *Bot) acknowledgeFacts() Response {
 	if fact.Attribute == "name" {
 		return Response{Text: "I'll remember your name as " + fact.Value + " for this conversation.", Module: "memory/name"}
 	}
+	if fact.Attribute == "linux_distribution" {
+		return Response{Text: "I'll remember that you use " + fact.Value + " in this conversation.", Module: "memory/environment"}
+	}
 	if fact.Subject == "user" {
 		return Response{Text: fmt.Sprintf("I'll remember that you are %s years old for this conversation.", fact.Value), Module: "memory/age"}
 	}
@@ -250,7 +305,7 @@ func isThanks(text string) bool {
 }
 
 func (b *Bot) answerFollowup(text string) (Response, bool) {
-	if b.memory.lastKnowledgeID == "" || b.memory.turn-b.memory.lastKnowledgeTurn > 2 {
+	if b.memory.lastKnowledgeID == "" || b.memory.turn-b.memory.lastKnowledgeTurn > conversationHistoryLimit {
 		return Response{}, false
 	}
 	if strings.Contains(text, "how long") || strings.Contains(text, "how much time") {

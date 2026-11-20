@@ -23,6 +23,8 @@ const (
 	tagline  = "A CPU-only chatbot built from examples, rules, and structured memory."
 	helpText = `Commands:
   /reset   clear the conversation memory
+  /context show remembered facts and the active topic
+  /forget  remove your remembered name, age, or Linux distribution
   /help    show this help
   /exit    quit (Ctrl+D works too)`
 )
@@ -169,7 +171,30 @@ func chat(bot *pybot.Bot, first string, stdin io.Reader, stdout, stderr io.Write
 		case "/help":
 			_, _ = fmt.Fprint(stdout, helpText+"\n\n")
 			continue
+		case "/context":
+			response := bot.Reply("What do you remember?")
+			if err := writeResponse(stdout, "pybot: ", response); err != nil {
+				fmt.Fprintf(stderr, "pybot: write context: %v\n", err)
+				return 1
+			}
+			_, _ = fmt.Fprintln(stdout)
+			continue
 		case "":
+			continue
+		}
+		if strings.HasPrefix(command, "/forget ") {
+			attribute := strings.TrimSpace(strings.TrimPrefix(command, "/forget "))
+			question := map[string]string{"name": "forget my name", "age": "forget my age", "distro": "forget my distro", "distribution": "forget my distro"}[attribute]
+			if question == "" {
+				_, _ = fmt.Fprint(stdout, "Use /forget name, /forget age, or /forget distro.\n\n")
+				continue
+			}
+			response := bot.Reply(question)
+			if err := writeResponse(stdout, "pybot: ", response); err != nil {
+				fmt.Fprintf(stderr, "pybot: write memory update: %v\n", err)
+				return 1
+			}
+			_, _ = fmt.Fprintln(stdout)
 			continue
 		}
 		start := time.Now()
