@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1 - 2026-11-20
+
+- Version browser asset URLs so repeat visitors do not keep using cached pre-embedding JavaScript or WebAssembly after an update.
+
 ## 0.5.0 - 2026-11-20
 
 - Add an optional, quantized MiniLM embedding router that runs on CPU in the browser and routes follow-ups to existing Go solvers without generating answers.
