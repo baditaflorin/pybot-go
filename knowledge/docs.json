@@ -7,7 +7,10 @@
     "source_title": "Cornell Chronicle: How onions make cooks cry",
     "source_url": "https://news.cornell.edu/stories/2025/10/mist-opportunity-reveals-how-onions-make-cooks-cry",
     "extra_sources": [
-      {"title": "UW–Madison: Why onions make us cry", "url": "https://news.wisc.edu/curiosities-why-do-onions-make-us-cry-when-we-cut-them/"}
+      {
+        "title": "UW–Madison: Why onions make us cry",
+        "url": "https://news.wisc.edu/curiosities-why-do-onions-make-us-cry-when-we-cut-them/"
+      }
     ],
     "followups": {}
   },
@@ -31,7 +34,10 @@
     "source_title": "USDA FSIS: How do you handle and store eggs safely?",
     "source_url": "https://ask.fsis.usda.gov/article/How-do-you-handle-and-store-eggs-safely",
     "extra_sources": [
-      {"title": "USDA FSIS: Why use a food thermometer for eggs?", "url": "https://ask.fsis.usda.gov/article/Why-is-it-so-important-that-people-use-a-food-thermometer-when-cooking-meat-poultry-and-eggs"}
+      {
+        "title": "USDA FSIS: Why use a food thermometer for eggs?",
+        "url": "https://ask.fsis.usda.gov/article/Why-is-it-so-important-that-people-use-a-food-thermometer-when-cooking-meat-poultry-and-eggs"
+      }
     ],
     "followups": {}
   },
@@ -52,7 +58,12 @@
     "text": "linux OS distro distribution release version kernel architecture CPU machine identify what operating system running cat etc os release uname -r -m",
     "source_title": "Linux man-pages: os-release(5)",
     "source_url": "https://man7.org/linux/man-pages/man5/os-release.5.html",
-    "extra_sources": [{"title":"Linux man-pages: uname(1)","url":"https://man7.org/linux/man-pages/man1/uname.1.html"}],
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: uname(1)",
+        "url": "https://man7.org/linux/man-pages/man1/uname.1.html"
+      }
+    ],
     "followups": {}
   },
   {
@@ -62,8 +73,15 @@
     "text": "linux disk full low storage space filesystem partition root mount free available df -h df -hT inodes inode df -i du usage disk usage largest directory folder full root var",
     "source_title": "Linux man-pages: df(1)",
     "source_url": "https://man7.org/linux/man-pages/man1/df.1.html",
-    "extra_sources": [{"title":"GNU Coreutils: du invocation","url":"https://www.gnu.org/software/coreutils/manual/html_node/du-invocation.html"}],
-    "followups": {"next_steps":"Share `df -hT` and `df -i` for the affected mount, plus the largest few lines from `sudo du -x -h --max-depth=1 /var | sort -h`. Redact hostnames or paths that identify sensitive services. I can help decide what is safe to clean; don't remove files just because they are large."}
+    "extra_sources": [
+      {
+        "title": "GNU Coreutils: du invocation",
+        "url": "https://www.gnu.org/software/coreutils/manual/html_node/du-invocation.html"
+      }
+    ],
+    "followups": {
+      "next_steps": "Share `df -hT` and `df -i` for the affected mount, plus the largest few lines from `sudo du -x -h --max-depth=1 /var | sort -h`. Redact hostnames or paths that identify sensitive services. I can help decide what is safe to clean; don't remove files just because they are large."
+    }
   },
   {
     "id": "linux-find-large-files",
@@ -73,7 +91,9 @@
     "source_title": "Linux man-pages: find(1)",
     "source_url": "https://man7.org/linux/man-pages/man1/find.1.html",
     "extra_sources": [],
-    "followups": {"next_steps":"First confirm the exact path and which process owns it with `stat /path/to/file` and `sudo lsof -- /path/to/file` if installed. Don't delete database, journal, or application data files until you know what uses them and have a recovery plan."}
+    "followups": {
+      "next_steps": "First confirm the exact path and which process owns it with `stat /path/to/file` and `sudo lsof -- /path/to/file` if installed. Don't delete database, journal, or application data files until you know what uses them and have a recovery plan."
+    }
   },
   {
     "id": "linux-systemd-service-failure",
@@ -82,34 +102,50 @@
     "text": "linux systemd service unit failed won't start crash error status inactive activating failing debugging logs journalctl systemctl status service daemon",
     "source_title": "Linux man-pages: systemctl(1)",
     "source_url": "https://man7.org/linux/man-pages/man1/systemctl.1.html",
-    "extra_sources": [{"title":"Linux man-pages: journalctl(1)","url":"https://man7.org/linux/man-pages/man1/journalctl.1.html"}],
-    "followups": {"next_steps":"Share the unit name, `systemctl status SERVICE --no-pager -l`, and the last 50–100 lines from `journalctl -u SERVICE -b --no-pager -n 100`. Include the Linux distribution and what changed before the failure. Remove secrets, tokens, and private host details first."}
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: journalctl(1)",
+        "url": "https://man7.org/linux/man-pages/man1/journalctl.1.html"
+      }
+    ],
+    "followups": {
+      "next_steps": "Share the unit name, `systemctl status SERVICE --no-pager -l`, and the last 50–100 lines from `journalctl -u SERVICE -b --no-pager -n 100`. Include the Linux distribution and what changed before the failure. Remove secrets, tokens, and private host details first."
+    }
   },
   {
     "id": "linux-journal-logs",
     "title": "Read systemd and boot logs",
-    "answer": "For warnings and errors from the current boot, run `journalctl -b -p warning..alert --no-pager`. For kernel messages, use `journalctl -k -b --no-pager`. To inspect the previous boot, use `journalctl -b -1 --no-pager` if those logs were retained. Journal output may contain sensitive values, so redact it before posting.",
-    "text": "linux logs log files systemd journal boot current previous boot kernel warning error inspect journalctl dmesg messages",
+    "answer": "For live kernel messages, run `sudo dmesg --follow` (or `sudo dmesg -w`); press Ctrl+C to stop. On systems with persistent journaling, `sudo journalctl -kf` follows kernel messages through the journal. Access to kernel logs may be restricted, and output can expose sensitive details.",
+    "text": "linux logs log files systemd journal boot current previous boot kernel warning error inspect journalctl dmesg messages dmesg output as it changes follow live kernel messages --follow -w",
     "source_title": "Linux man-pages: journalctl(1)",
     "source_url": "https://man7.org/linux/man-pages/man1/journalctl.1.html",
-    "extra_sources": [],
-    "followups": {"next_steps":"Narrow the log to the affected service or time window with `journalctl -u SERVICE --since '30 minutes ago' --no-pager`. Tell me the unit name and paste only the relevant redacted error lines."}
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: dmesg(1)",
+        "url": "https://man7.org/linux/man-pages/man1/dmesg.1.html"
+      }
+    ],
+    "followups": {
+      "next_steps": "Narrow the log to the affected service or time window with `journalctl -u SERVICE --since '30 minutes ago' --no-pager`. Tell me the unit name and paste only the relevant redacted error lines."
+    }
   },
   {
     "id": "linux-process-cpu",
     "title": "Find processes using CPU or memory",
-    "answer": "For the busiest CPU processes, run `ps -eo pid,ppid,%cpu,%mem,stat,comm --sort=-%cpu | head`. Change the sort key to `%mem` to rank by memory. `uptime` shows load averages; `top` gives a live view. These commands inspect processes and do not stop them. Identify a process and its owner before considering a restart or signal.",
-    "text": "linux process PID high CPU usage memory RAM slow server performance top ps aux sort process list running resource utilization load average",
+    "answer": "To sort by CPU, run `ps -eo pid,ppid,%cpu,%mem,stat,comm --sort=-%cpu | head`; for memory, change the sort key to `--sort=-%mem`. `top` gives a live view, and `uptime` shows load averages. These commands inspect processes and do not stop them. Identify the process and owner before considering a restart or signal.",
+    "text": "linux process PID high CPU usage memory RAM slow server performance top ps aux sort process list running resource utilization load average sort by memory %mem --sort=-%mem processes by memory",
     "source_title": "Linux man-pages: ps(1)",
     "source_url": "https://man7.org/linux/man-pages/man1/ps.1.html",
     "extra_sources": [],
-    "followups": {"next_steps":"Share the top few rows from `ps -eo pid,ppid,%cpu,%mem,stat,comm --sort=-%cpu | head` and `uptime`. If memory is the issue, also share `free -h`. Redact command arguments that may contain passwords or tokens."}
+    "followups": {
+      "next_steps": "Share the top few rows from `ps -eo pid,ppid,%cpu,%mem,stat,comm --sort=-%cpu | head` and `uptime`. If memory is the issue, also share `free -h`. Redact command arguments that may contain passwords or tokens."
+    }
   },
   {
     "id": "linux-memory-pressure",
     "title": "Check Linux memory and swap",
     "answer": "Run `free -h` for RAM and swap totals, and `swapon --show` to list active swap devices. Linux uses spare memory for cache, so a low `free` column alone does not prove memory pressure; look at `available`, swap activity, and whether processes are being killed. `vmstat 1 5` provides a short read-only activity sample.",
-    "text": "linux RAM memory low out of memory OOM swap swapping cache free available vmstat physical memory process killed",
+    "text": "linux RAM memory low out of memory OOM swap swapping cache free available vmstat physical memory process killed kernel high memory low memory 32 bit swappiness OOM killer process limit single process",
     "source_title": "Linux man-pages: free(1)",
     "source_url": "https://man7.org/linux/man-pages/man1/free.1.html",
     "extra_sources": [],
@@ -132,17 +168,29 @@
     "text": "linux network no internet connectivity interface address IP route gateway routing connection curl ping networkmanager troubleshoot",
     "source_title": "Linux man-pages: ip(8)",
     "source_url": "https://man7.org/linux/man-pages/man8/ip.8.html",
-    "extra_sources": [{"title":"Linux man-pages: getent(1)","url":"https://man7.org/linux/man-pages/man1/getent.1.html"}],
-    "followups": {"next_steps":"Tell me whether the problem affects one host or all hosts, the distribution, and which of `ip -br address`, `ip route`, `getent hosts HOST`, or `curl -I HOST` fails. Redact public IPs and internal hostnames if needed."}
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: getent(1)",
+        "url": "https://man7.org/linux/man-pages/man1/getent.1.html"
+      }
+    ],
+    "followups": {
+      "next_steps": "Tell me whether the problem affects one host or all hosts, the distribution, and which of `ip -br address`, `ip route`, `getent hosts HOST`, or `curl -I HOST` fails. Redact public IPs and internal hostnames if needed."
+    }
   },
   {
     "id": "linux-dns",
     "title": "Troubleshoot Linux DNS resolution",
-    "answer": "Test the system resolver with `getent ahosts example.com`. On systems using systemd-resolved, inspect configuration with `resolvectl status` and query with `resolvectl query example.com`. If those commands are unavailable, tell me the distribution and resolver; don't overwrite `/etc/resolv.conf` until you know which service manages it.",
-    "text": "linux DNS domain name resolution lookup hostname cannot resolve getent resolvectl systemd resolved nameserver resolv.conf error",
+    "answer": "In Bash, resolve a host through the system name-service configuration with `getent ahosts \"$host\"`; for example, set `host=example.com` first. It can return multiple addresses and may include IPv6. This is usually preferable to parsing `/etc/resolv.conf`, because the configured resolver and NSS sources vary. On systemd-resolved hosts, inspect DNS configuration with `resolvectl status`.",
+    "text": "linux DNS domain name resolution lookup hostname cannot resolve getent resolvectl systemd resolved nameserver resolv.conf error Bash script resolve hostname to IP getent ahosts",
     "source_title": "Linux man-pages: getent(1)",
     "source_url": "https://man7.org/linux/man-pages/man1/getent.1.html",
-    "extra_sources": [{"title":"systemd: resolvectl","url":"https://www.freedesktop.org/software/systemd/man/latest/resolvectl.html"}],
+    "extra_sources": [
+      {
+        "title": "systemd: resolvectl",
+        "url": "https://www.freedesktop.org/software/systemd/man/latest/resolvectl.html"
+      }
+    ],
     "followups": {}
   },
   {
@@ -162,7 +210,12 @@
     "text": "linux permission denied access error cannot read write execute file directory ownership owner group chmod chown id namei path access control",
     "source_title": "Linux man-pages: chmod(1)",
     "source_url": "https://man7.org/linux/man-pages/man1/chmod.1.html",
-    "extra_sources": [{"title":"Linux man-pages: chown(1)","url":"https://man7.org/linux/man-pages/man1/chown.1.html"}],
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: chown(1)",
+        "url": "https://man7.org/linux/man-pages/man1/chown.1.html"
+      }
+    ],
     "followups": {}
   },
   {
@@ -172,7 +225,16 @@
     "text": "linux update upgrade install packages package manager apt apt-get Debian Ubuntu Fedora dnf Arch pacman repository security updates software distribution",
     "source_title": "Debian manpages: apt(8)",
     "source_url": "https://manpages.debian.org/stable/apt/apt.8.en.html",
-    "extra_sources": [{"title":"Fedora Docs: Updating and upgrading packages","url":"https://docs.fedoraproject.org/en-US/quick-docs/updating-upgrading-packages/"},{"title":"ArchWiki: System maintenance","url":"https://wiki.archlinux.org/title/System_maintenance"}],
+    "extra_sources": [
+      {
+        "title": "Fedora Docs: Updating and upgrading packages",
+        "url": "https://docs.fedoraproject.org/en-US/quick-docs/updating-upgrading-packages/"
+      },
+      {
+        "title": "ArchWiki: System maintenance",
+        "url": "https://wiki.archlinux.org/title/System_maintenance"
+      }
+    ],
     "followups": {}
   },
   {
@@ -188,22 +250,34 @@
   {
     "id": "linux-mounts",
     "title": "Inspect disks, partitions, and mount points",
-    "answer": "Run `lsblk -f` to see block devices and filesystem labels, then `findmnt --target /path` to identify which filesystem backs a path. These commands inspect configuration and mounts. Don't run `mkfs`, `fsck`, or edit `/etc/fstab` until the exact device, filesystem, and whether it is mounted are confirmed; a wrong device can destroy data.",
-    "text": "linux disk drive partition block device mount point mounted filesystem lsblk findmnt fstab storage USB UUID device name",
+    "answer": "Run `lsblk -f` to see block devices and filesystem labels. For the complete mount table visible in the current mount namespace, run `findmnt --list`; use `findmnt --target /path` to identify which filesystem backs a path. These commands inspect mounts. Do not run `mkfs`, `fsck`, or edit `/etc/fstab` until the exact device, filesystem, and mount state are confirmed; a wrong device can destroy data.",
+    "text": "linux disk drive partition block device mount point mounted filesystem lsblk findmnt fstab storage USB UUID device name mounted filesystems exact list findmnt --list filesystem type ext2 ext3 ext4 partition labels",
     "source_title": "Linux man-pages: findmnt(8)",
     "source_url": "https://man7.org/linux/man-pages/man8/findmnt.8.html",
-    "extra_sources": [{"title":"Linux man-pages: lsblk(8)","url":"https://man7.org/linux/man-pages/man8/lsblk.8.html"}],
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: lsblk(8)",
+        "url": "https://man7.org/linux/man-pages/man8/lsblk.8.html"
+      }
+    ],
     "followups": {}
   },
   {
     "id": "linux-ssh-debug",
     "title": "Diagnose an SSH connection failure",
     "answer": "Run `ssh -vvv user@host` to see where the client connection fails; use the real user and host. Check reachability and server port separately, and verify the server's SSH service and firewall from a trusted console if you have access. Do not paste private keys, passwords, tokens, or unredacted verbose output; it can expose usernames and host details.",
-    "text": "linux SSH cannot connect connection refused timeout permission denied public key authentication sshd server client debug verbose login",
+    "text": "linux SSH cannot connect connection refused timeout permission denied public key authentication sshd server client debug verbose login SSH connection timeout refused key authentication verbose debug",
     "source_title": "OpenSSH manual: ssh(1)",
     "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html",
-    "extra_sources": [{"title":"OpenSSH manual: sshd(8)","url":"https://man7.org/linux/man-pages/man8/sshd.8.html"}],
-    "followups": {"next_steps":"Share the exact SSH error and the last relevant lines from `ssh -vvv user@host`, with usernames, addresses, and key paths redacted. Say whether the client and server are on the same network and whether the server is Linux."}
+    "extra_sources": [
+      {
+        "title": "OpenSSH manual: sshd(8)",
+        "url": "https://man7.org/linux/man-pages/man8/sshd.8.html"
+      }
+    ],
+    "followups": {
+      "next_steps": "Share the exact SSH error and the last relevant lines from `ssh -vvv user@host`, with usernames, addresses, and key paths redacted. Say whether the client and server are on the same network and whether the server is Linux."
+    }
   },
   {
     "id": "linux-firewall-status",
@@ -212,7 +286,12 @@
     "text": "linux firewall port blocked packet filter ufw nftables nft ruleset firewalld inspect status allow deny network security",
     "source_title": "Ubuntu manual pages: ufw(8)",
     "source_url": "https://manpages.ubuntu.com/manpages/noble/en/man8/ufw.8.html",
-    "extra_sources": [{"title":"Linux man-pages: nft(8)","url":"https://man7.org/linux/man-pages/man8/nft.8.html"}],
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: nft(8)",
+        "url": "https://man7.org/linux/man-pages/man8/nft.8.html"
+      }
+    ],
     "followups": {}
   },
   {
@@ -222,7 +301,12 @@
     "text": "linux log logs disk space storage full var log journalctl disk usage large journal logs rotation clean remove archived log files",
     "source_title": "Linux man-pages: journalctl(1)",
     "source_url": "https://man7.org/linux/man-pages/man1/journalctl.1.html",
-    "extra_sources": [{"title":"GNU Coreutils: du invocation","url":"https://www.gnu.org/software/coreutils/manual/html_node/du-invocation.html"}],
+    "extra_sources": [
+      {
+        "title": "GNU Coreutils: du invocation",
+        "url": "https://www.gnu.org/software/coreutils/manual/html_node/du-invocation.html"
+      }
+    ],
     "followups": {}
   },
   {
@@ -258,11 +342,16 @@
   {
     "id": "linux-overview",
     "title": "What Linux is and what a Linux distribution includes",
-    "answer": "Linux is the kernel: the core software that manages hardware resources and provides services to programs. In everyday use, “Linux” often means a distribution that combines the kernel with system tools, libraries, applications, and a package manager. Ubuntu, Debian, and Fedora are distributions. Their setup and commands can differ, so include the distribution name and version when asking for help.",
-    "text": "linux kernel operating system distribution distro Ubuntu Debian Fedora GNU system tools libraries package manager hardware resources programs what is linux",
-    "source_title": "The Linux Kernel documentation: Introduction",
-    "source_url": "https://docs.kernel.org/process/1.Intro.html",
-    "extra_sources": [{"title":"GNU Project: Linux and the GNU System","url":"https://www.gnu.org/gnu/linux-and-gnu.html"}],
+    "answer": "Linux is Unix-like and is often described as a Unix clone, but Linux is a separate kernel and distribution ecosystem. A Linux distribution combines the kernel with system software and applications. In casual technical speech, “Unix-like” is the clearest description; formal UNIX certification is a separate, product-specific question.",
+    "text": "linux kernel operating system distribution distro Ubuntu Debian Fedora GNU system tools libraries package manager hardware resources programs what is linux Unix UNIX Unix-like certified UNIX Unix-like Unix clone kernel distribution formal certification product standard",
+    "source_title": "Linux Kernel: About Linux",
+    "source_url": "https://www.kernel.org/linux.html",
+    "extra_sources": [
+      {
+        "title": "GNU Project: Linux and the GNU System",
+        "url": "https://www.gnu.org/gnu/linux-and-gnu.html"
+      }
+    ],
     "followups": {}
   },
   {
@@ -282,6 +371,858 @@
     "text": "linux SSH Secure Shell secure remote login protocol network services client ssh server sshd authentication password key what is SSH",
     "source_title": "RFC 4251: The Secure Shell Protocol Architecture",
     "source_url": "https://www.rfc-editor.org/info/rfc4251/",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-ls",
+    "title": "List file names, sizes, and dates with ls",
+    "answer": "For human-readable file sizes, use `ls -lh`; GNU `ls` displays scaled values with units. Use `ls -l --block-size=MB` for decimal megabytes, or `--block-size=M` for powers of 1024; add `-S` to sort largest first. `ls -1A` prints one entry per line, including hidden names except `.` and `..`. For a long listing with a four-digit date, use `ls -lh --time-style=+%Y-%m-%d`. For scripts that must handle unusual names safely, use `find ... -print0`. GNU-specific options can differ on macOS and other Unix systems.",
+    "text": "linux ls list directory files sizes megabytes human readable block size sort by file size largest first names dates timestamp long format list only filenames names with spaces show year date and size ls -1A ls -lh --time-style",
+    "source_title": "GNU Coreutils manual: What information is listed",
+    "source_url": "https://www.gnu.org/software/coreutils/manual/html_node/What-information-is-listed.html",
+    "extra_sources": [
+      {
+        "title": "GNU Coreutils manual: Block size",
+        "url": "https://www.gnu.org/software/coreutils/manual/html_node/Block-size.html"
+      },
+      {
+        "title": "Linux man-pages: find(1)",
+        "url": "https://man7.org/linux/man-pages/man1/find.1.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-empty-directories",
+    "title": "Preview and remove empty directories safely",
+    "answer": "Preview matches first: `find \"$HOME\" -type d -empty -print`. Read the list and confirm the starting path. If you intend to delete only those empty directories, run `find \"$HOME\" -depth -type d -empty -delete`. This changes the filesystem; keep the preview step separate and do not run it from `/` unless that is your specific goal.",
+    "text": "linux recursively delete remove empty directories folders home directory find -type d -empty print preview delete safely destructive",
+    "source_title": "Linux man-pages: find(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/find.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-cpu-info",
+    "title": "Count CPUs and inspect CPU information",
+    "answer": "Run `nproc` to see the processing units available to the current process; containers and CPU limits can make this smaller than the host total. Run `lscpu` for architecture, socket, core, and thread details. `lscpu -e` lists logical CPUs and their core/socket mapping. Counts of logical CPUs, physical cores, and sockets are different quantities.",
+    "text": "linux CPU number of cores processors threads sockets logical CPUs nproc lscpu /proc/cpuinfo flags architecture",
+    "source_title": "Linux man-pages: lscpu(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/lscpu.1.html",
+    "extra_sources": [
+      {
+        "title": "GNU Coreutils: nproc",
+        "url": "https://www.gnu.org/software/coreutils/manual/html_node/nproc-invocation.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-display-session",
+    "title": "Check whether a desktop session uses Wayland or X11",
+    "answer": "In a graphical session, print `printf '%s\\n' \"$XDG_SESSION_TYPE\"`; it commonly reports `wayland` or `x11`. On a systemd login session, `loginctl show-session \"$XDG_SESSION_ID\" -p Type --value` can report the session type. These values may be unset in SSH shells, containers, or other non-graphical sessions.",
+    "text": "linux Wayland X11 Xorg graphical desktop session display server XDG_SESSION_TYPE loginctl",
+    "source_title": "systemd manual: pam_systemd(8)",
+    "source_url": "https://www.freedesktop.org/software/systemd/man/latest/pam_systemd.html",
+    "extra_sources": [
+      {
+        "title": "systemd manual: loginctl(1)",
+        "url": "https://www.freedesktop.org/software/systemd/man/latest/loginctl.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-process-signals",
+    "title": "Choose SIGTERM or SIGKILL when stopping a process",
+    "answer": "Start with `kill -TERM PID` (the default signal from `kill PID`) and give the program time to exit and clean up. Use `kill -KILL PID` only when a process will not stop and you have confirmed the PID; SIGKILL cannot be caught or handled, so the program cannot clean up. Check with `ps -p PID -o pid,stat,cmd` before acting, and avoid broad commands that target many processes.",
+    "text": "linux kill -9 SIGKILL SIGTERM when not to kill process stop terminate gracefully PID signal cleanup",
+    "source_title": "Linux man-pages: kill(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/kill.1.html",
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: signal(7)",
+        "url": "https://man7.org/linux/man-pages/man7/signal.7.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-ps-aux",
+    "title": "Understand the ps aux process listing",
+    "answer": "In `ps aux`, `a` selects processes associated with terminals, `u` requests a user-oriented format, and `x` includes processes without a controlling terminal. This is a BSD-style option form; it is not one combined option in the same sense as `ps -ef`. For a tailored list, use `ps -eo pid,user,%cpu,%mem,stat,comm` and add the columns you need.",
+    "text": "linux ps aux what does aux mean process list BSD syntax terminal user oriented output CPU memory",
+    "source_title": "procps-ng manual: ps(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/ps.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-memory-cache",
+    "title": "Understand Linux buffers and page cache",
+    "answer": "Linux uses otherwise-idle RAM for filesystem cache and can reclaim much of it when applications need memory. Check `free -h` and focus on `available`, swap activity, and whether processes are being killed; a low `free` number alone is not proof of a problem. Do not clear caches as routine tuning: it can slow the next reads and usually does not free memory that the kernel could not reclaim itself. Cache-dropping controls are mainly for testing.",
+    "text": "linux clear empty buffers cache page cache drop_caches free -h memory available kernel filesystem caching",
+    "source_title": "Linux kernel documentation: Virtual memory sysctl",
+    "source_url": "https://docs.kernel.org/admin-guide/sysctl/vm.html",
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: free(1)",
+        "url": "https://man7.org/linux/man-pages/man1/free.1.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-hardware-info",
+    "title": "Inspect Linux hardware and virtualization details",
+    "answer": "For disks, run `lsblk -d -o NAME,SIZE,MODEL,ROTA,TRAN`; `ROTA=1` indicates a rotational device and `ROTA=0` a non-rotational one, though virtual storage can obscure the physical device type. For the machine model, `sudo dmidecode -s system-product-name` reads firmware data when available. Some fields require privileges or are unavailable in a VM.",
+    "text": "linux hardware model system product name identify disk SSD HDD solid state rotational ROTA RAM slots virtualization technology systemd-detect-virt dmidecode",
+    "source_title": "Linux man-pages: lsblk(8)",
+    "source_url": "https://man7.org/linux/man-pages/man8/lsblk.8.html",
+    "extra_sources": [
+      {
+        "title": "dmidecode manual: dmidecode(8)",
+        "url": "https://manpages.debian.org/stable/dmidecode/dmidecode.8.en.html"
+      },
+      {
+        "title": "systemd manual: systemd-detect-virt(1)",
+        "url": "https://www.freedesktop.org/software/systemd/man/latest/systemd-detect-virt.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-permissions",
+    "title": "Understand Linux read, write, and execute permission bits",
+    "answer": "For each owner, group, and other-user triplet, read is 4, write is 2, and execute is 1; add the values to get an octal digit. For example, `754` means owner `rwx`, group `r-x`, and other users `r--`. On a directory, execute allows traversal and read allows listing names. Inspect a path with `stat -c '%A %a %U:%G %n' FILE` before changing permissions.",
+    "text": "linux execute vs read bit directory permissions chmod numerical numeric octal mode permission bits 755 754 owner group others",
+    "source_title": "Linux man-pages: chmod(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/chmod.1.html",
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: path_resolution(7)",
+        "url": "https://man7.org/linux/man-pages/man7/path_resolution.7.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-umask",
+    "title": "Inspect the default permission mask",
+    "answer": "Run `umask` to print the current numeric mask, or `umask -S` for a symbolic view. The mask removes permission bits from the mode requested when a process creates files and directories; it does not grant permissions. The requested mode and application behavior also matter, so inspect an actual file with `stat` before changing the mask.",
+    "text": "linux umask default file permissions default permissions mask created files directories inspect current mask",
+    "source_title": "Linux man-pages: umask(2)",
+    "source_url": "https://man7.org/linux/man-pages/man2/umask.2.html",
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: umask(1p)",
+        "url": "https://man7.org/linux/man-pages/man1/umask.1p.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-tar",
+    "title": "Create and inspect a compressed tar archive",
+    "answer": "To create a gzip-compressed archive of a directory, run `tar -czf archive.tar.gz DIRECTORY/`; choose a new output filename so you do not overwrite an existing archive. List its contents before extracting with `tar -tzf archive.tar.gz`. To create an uncompressed archive, omit `-z` and use a `.tar` filename.",
+    "text": "linux tar compress archive folder directory gzip tar.gz create extract list contents archive",
+    "source_title": "Linux man-pages: tar(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/tar.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-copy",
+    "title": "Compare cp -r and cp -a",
+    "answer": "`cp -r SOURCE DEST` copies directories recursively. `cp -a SOURCE DEST` is archive mode: it recurses and attempts to preserve attributes such as permissions, timestamps, ownership where permitted, and symbolic links. If the destination exists, the resulting path depends on whether SOURCE is a file or directory and on the destination layout; inspect `DEST` before copying important data.",
+    "text": "linux cp -r cp -a difference copy directory recursively archive preserve attributes symlinks permissions timestamps",
+    "source_title": "Linux man-pages: cp(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/cp.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-block-devices",
+    "title": "Inspect disks, UUIDs, labels, and device sizes",
+    "answer": "Run `lsblk -o NAME,SIZE,FSTYPE,LABEL,UUID,MOUNTPOINTS` to list block devices, filesystem types, labels, UUIDs, and mount points. Add `-b` for byte sizes or `-d` to show whole disks without partitions. `blkid` can also report filesystem UUIDs and types. These commands inspect devices; do not run formatting or repair commands until you have identified the exact device and confirmed backups.",
+    "text": "linux hard disks drives block device size bytes UUID filesystem labels partition lsblk blkid mounted disk SSD HDD",
+    "source_title": "Linux man-pages: lsblk(8)",
+    "source_url": "https://man7.org/linux/man-pages/man8/lsblk.8.html",
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: blkid(8)",
+        "url": "https://man7.org/linux/man-pages/man8/blkid.8.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-sftp",
+    "title": "Upload a directory with SFTP",
+    "answer": "In an interactive `sftp user@host` session, use `put -r LOCAL_DIRECTORY` to upload a directory recursively. Check the remote working directory with `pwd` and `lpwd` before transferring, and use `ls`/`lls` to confirm the remote and local paths. For large or important transfers, confirm the destination and available space first.",
+    "text": "linux upload directory folders recursive SFTP put -r local remote path transfer secure file transfer",
+    "source_title": "OpenBSD manual: sftp(1)",
+    "source_url": "https://man.openbsd.org/sftp",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-cron",
+    "title": "List scheduled cron jobs",
+    "answer": "Run `crontab -l` to list the current user's personal cron jobs. To inspect another user's crontab, an administrator can run `sudo crontab -u USER -l`. System-wide schedules can also be defined in `/etc/crontab`, `/etc/cron.d/`, and the `/etc/cron.*` directories; inspect those files separately because they include a user field.",
+    "text": "linux cron scheduled jobs crontab list current user system wide /etc/cron.d /etc/crontab",
+    "source_title": "Linux man-pages: crontab(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/crontab.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-inotify-limit",
+    "title": "Diagnose an inotify watch limit error",
+    "answer": "Check the current per-user watch limit with `sysctl fs.inotify.max_user_watches` and look for the exact application error. The limit is shared by processes owned by a user, so identify which application is creating watches before increasing it. Raising kernel limits consumes resources; choose a value based on the application and host, and use your distribution's sysctl configuration rather than a temporary one-liner if a change is needed.",
+    "text": "linux kernel inotify watch limit reached fs.inotify.max_user_watches watches systemctl sysctl file watchers",
+    "source_title": "Linux man-pages: inotify(7)",
+    "source_url": "https://man7.org/linux/man-pages/man7/inotify.7.html",
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: proc_sys_fs(5)",
+        "url": "https://man7.org/linux/man-pages/man5/proc_sys_fs.5.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-timezone",
+    "title": "Inspect or change the Linux system time zone",
+    "answer": "Inspect the current clock and time-zone configuration with `timedatectl status`. To list available zones, run `timedatectl list-timezones`. Setting one with `sudo timedatectl set-timezone Region/City` changes the system configuration; confirm the intended zone and the impact on scheduled jobs before changing a production host.",
+    "text": "linux timezone time zone setting timedatectl system time set date list timezones change timezone",
+    "source_title": "systemd manual: timedatectl(1)",
+    "source_url": "https://www.freedesktop.org/software/systemd/man/latest/timedatectl.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-tty",
+    "title": "Understand Linux console and terminal device names",
+    "answer": "`/dev/tty` refers to the calling process's controlling terminal. `/dev/console` is the system console device, while `/dev/tty0` refers to the currently active virtual console on Linux. Pseudo-terminal pairs (`/dev/pts/*`) provide terminal-like sessions for programs such as terminal emulators and SSH. These names refer to different layers; the right one depends on whether you mean the system console, a virtual console, or a user's terminal session.",
+    "text": "linux /dev/console /dev/tty /dev/tty0 pts pty pseudo terminal difference terminal device",
+    "source_title": "Linux man-pages: tty(4)",
+    "source_url": "https://man7.org/linux/man-pages/man4/tty.4.html",
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: console(4)",
+        "url": "https://man7.org/linux/man-pages/man4/console.4.html"
+      },
+      {
+        "title": "Linux man-pages: pts(4)",
+        "url": "https://man7.org/linux/man-pages/man4/pts.4.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-file-metadata",
+    "title": "Read file modification and change timestamps",
+    "answer": "Run `stat FILE` to see file size and timestamps. On Linux, modification time (`mtime`) changes when file contents change; status-change time (`ctime`) changes when metadata changes and is not the creation time. A birth/creation time may be unavailable depending on the filesystem; `stat -c '%n %y %z %w' FILE` prints name, mtime, ctime, and birth time when supported.",
+    "text": "linux file timestamps modification time created time birth time ctime stat metadata date",
+    "source_title": "Linux man-pages: stat(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/stat.1.html",
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: inode(7)",
+        "url": "https://man7.org/linux/man-pages/man7/inode.7.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-user-lookup",
+    "title": "Look up a Linux user by numeric UID",
+    "answer": "Use `getent passwd UID` with the numeric user ID; for example, `getent passwd 1000`. It queries the system's configured account databases, which may include local files or a network directory service. The result's first field is the user name. Use `id USER` to inspect a known user's UID and group memberships.",
+    "text": "linux lookup username by id UID user id getent passwd numeric account name",
+    "source_title": "Linux man-pages: getent(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/getent.1.html",
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: passwd(5)",
+        "url": "https://man7.org/linux/man-pages/man5/passwd.5.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-disk-io",
+    "title": "Monitor Linux disk I/O",
+    "answer": "If `iostat` from the `sysstat` package is installed, `iostat -xz 1 5` samples device utilization, throughput, and latency once per second for five intervals. Check which device maps to the affected filesystem with `lsblk` or `findmnt`. High utilization alone does not identify the cause; correlate the sample with the workload and application logs.",
+    "text": "linux monitor disk io disk I/O device input output iostat sysstat utilization latency read write",
+    "source_title": "sysstat manual: iostat(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/iostat.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-external-ip",
+    "title": "Query the public IP address from a shell script",
+    "answer": "A local machine often cannot infer the public address used by a NAT gateway. If you trust the external service, `curl -fsS https://api.ipify.org` returns the public egress address; a script can capture it with `public_ip=$(curl -fsS https://api.ipify.org)`. This contacts ipify and reveals your request's public source address to that service. Use an endpoint approved for your environment.",
+    "text": "linux bash shell script get external public IP address curl ipify NAT egress address",
+    "source_title": "ipify: IP address API",
+    "source_url": "https://www.ipify.org/",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-top-fields",
+    "title": "Interpret the CPU state fields shown by top",
+    "answer": "In `top`, `us` is time running user processes, `sy` kernel time, `ni` niced user processes, `id` idle time, and `wa` waiting for I/O. `hi` and `si` are hardware and software interrupt time; `st` is time taken by a hypervisor from a virtual CPU. These are CPU time percentages over the sampling interval, so read them together with process activity and I/O metrics.",
+    "text": "linux top CPU usage us sy ni id wa hi si st user system nice idle iowait hardware interrupt softirq steal time",
+    "source_title": "procps-ng manual: top(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/top.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-top-memory",
+    "title": "Show memory values in top",
+    "answer": "In `top`, press `E` to cycle the summary memory units and `e` to cycle the process-list memory units. The available scales are shown in the display; exact behavior can vary with procps version and configuration. If you need a fixed unit for scripting, use `/proc/meminfo` or `free -m` instead.",
+    "text": "linux top meminfo memory values display MB megabytes units E e process list",
+    "source_title": "procps-ng manual: top(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/top.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-cpu-flags",
+    "title": "Understand the flags in /proc/cpuinfo",
+    "answer": "The `flags` line in `/proc/cpuinfo` lists CPU instruction-set and hardware feature capabilities exposed to Linux, such as virtualization or vector-instruction support. It is a feature list, not a list of enabled Linux kernel modules. `lscpu` provides a more structured summary; what is exposed can differ inside virtual machines.",
+    "text": "linux /proc/cpuinfo flags CPU feature bits instruction set virtualization lscpu",
+    "source_title": "Linux man-pages: proc_cpuinfo(5)",
+    "source_url": "https://man7.org/linux/man-pages/man5/proc_cpuinfo.5.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-process-memory-limit",
+    "title": "Limit memory used by a Linux process",
+    "answer": "For a systemd service, set a unit-level `MemoryMax=` limit and inspect the result with `systemctl show SERVICE -p MemoryMax`. For a one-off process, a transient systemd scope can use `systemd-run --scope -p MemoryMax=1G COMMAND`; support depends on systemd and cgroup configuration. Confirm the limit is appropriate because exceeding it can cause the service or process to be killed.",
+    "text": "linux limit memory usage single process systemd MemoryMax cgroup service systemd-run limit memory usage for a single Linux process cgroup MemoryMax",
+    "source_title": "systemd manual: Resource Control",
+    "source_url": "https://www.freedesktop.org/software/systemd/man/latest/systemd.resource-control.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-ram-slots",
+    "title": "Inspect installed RAM modules and memory slots",
+    "answer": "If `dmidecode` is installed and firmware exposes the data, run `sudo dmidecode --type memory` and inspect each `Memory Device` section. `Size: No Module Installed` indicates an empty reported slot. Firmware tables can be incomplete or misleading in virtual machines; compare the output with the machine vendor’s documentation.",
+    "text": "linux determine RAM slots in use DIMM memory devices dmidecode firmware",
+    "source_title": "dmidecode manual: dmidecode(8)",
+    "source_url": "https://manpages.debian.org/stable/dmidecode/dmidecode.8.en.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-vim-multiple-files",
+    "title": "Open multiple files in Vim",
+    "answer": "Pass the file names to Vim, for example `vim file1 file2`. Use `:next` and `:previous` to move through the argument list, or `:ls` and `:buffer N` to switch between open buffers. Save or quit each modified buffer deliberately; Vim can stop a quit if there are unsaved changes.",
+    "text": "linux vim edit multiple files argument list next previous buffer :next :ls",
+    "source_title": "Vim manual: user manual",
+    "source_url": "https://vimhelp.org/usr_22.txt.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-login-shell",
+    "title": "Why `su -` starts a login shell",
+    "answer": "`su USER` switches identity but normally keeps much of the caller’s environment and current directory. `su - USER` starts a login-style shell, changes to that user’s home directory, and initializes a login environment. If you only need one administrator command, `sudo COMMAND` is usually easier to audit; follow the host’s policy.",
+    "text": "linux su - vs su login shell environment home directory",
+    "source_title": "Linux man-pages: su(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/su.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-sync-progress",
+    "title": "Check whether Linux is still writing cached data",
+    "answer": "`sync` requests that pending filesystem changes be written, but it has no built-in progress display. Check `/proc/meminfo` fields such as `Dirty` and `Writeback`, and use `iostat -xz 1` if `sysstat` is installed to observe device activity. These are indicators, not proof that one specific `sync` call has finished; avoid repeatedly launching `sync` on a busy system.",
+    "text": "linux monitor progress sync operation filesystem dirty writeback iostat",
+    "source_title": "Linux man-pages: sync(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/sync.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-large-dir-delete",
+    "title": "Remove a large directory after checking its path",
+    "answer": "First confirm the exact target with `printf '%s\\n' \"$DIR\"` and `find \"$DIR\" -mindepth 1 -maxdepth 1 -print | head`. To remove the selected directory and its contents, `rm -rf -- \"$DIR\"` is the usual command; it is destructive and does not provide a recycle bin. Do not use an unquoted variable or run it until the path is verified. For very large trees, performance depends on the filesystem and directory structure.",
+    "text": "linux efficiently delete remove large directory thousands files rm -rf safe path preview",
+    "source_title": "Linux man-pages: rm(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/rm.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-interface-names",
+    "title": "Why Linux interfaces have names such as enp0s10",
+    "answer": "Names such as `enp0s10` are predictable interface names that encode a hardware or firmware location, instead of relying only on discovery order like `eth0`. The exact scheme depends on the naming policy and available device metadata. Use `ip -br link` to inspect interfaces and `udevadm info` for device properties; avoid renaming a remote server interface without a recovery path.",
+    "text": "linux ethernet interface predictable names enp0s10 eth0 systemd udev",
+    "source_title": "systemd documentation: Predictable Network Interface Names",
+    "source_url": "https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-shadow-password",
+    "title": "Set a Linux user password safely",
+    "answer": "Use `sudo passwd USER` to set or change a local account password. The system updates the protected password database and applies its configured hashing policy. Avoid manually editing `/etc/shadow` or placing a password in a command argument, shell history, script, or log. Directory-backed accounts may require their identity provider’s password-change tool.",
+    "text": "linux manually generate password /etc/shadow set user password passwd secure hash",
+    "source_title": "Linux man-pages: passwd(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/passwd.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-rsync-folders",
+    "title": "Synchronize two directories with rsync",
+    "answer": "Preview a copy with `rsync -a --dry-run SOURCE/ DEST/`; remove `--dry-run` only after checking the file list and destination. The trailing slash on `SOURCE/` means “copy the contents of this directory.” `rsync -a` does not delete extra destination files; adding `--delete` is destructive and should be previewed separately.",
+    "text": "linux sync two folders directories rsync command line tools dry run trailing slash",
+    "source_title": "rsync manual: rsync(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/rsync.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-move-files",
+    "title": "Move files and directories with mv",
+    "answer": "Use `mv -- SOURCE DESTINATION/` to move named files or directories into an existing destination directory. For a shell glob such as `mv -- /path/source/* /path/dest/`, note that ordinary `*` does not include hidden files and may expand to nothing; check the paths first. Moving across filesystems may copy and remove data, so confirm free space and backups for important moves.",
+    "text": "linux move all files folders via mv command destination shell glob hidden files",
+    "source_title": "Linux man-pages: mv(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/mv.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-symlink-ownership",
+    "title": "Change the owner of a symbolic link",
+    "answer": "On Linux, `chown -h USER:GROUP LINK` changes the link’s own owner rather than following it to the target. Check the link and target with `ls -l LINK` and `readlink LINK` first. Ownership changes require appropriate privileges; exact options can differ on other Unix systems.",
+    "text": "linux change ownership symbolic link symlink chown -h follow target",
+    "source_title": "Linux man-pages: chown(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/chown.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-runtime-dir",
+    "title": "What `/run/user/UID` is for",
+    "answer": "`/run/user/UID` is a per-user runtime directory created for an active login session on systemd systems. It is normally temporary runtime state, often backed by memory, and is managed by the login/session service. Do not store persistent files there; inspect ownership and permissions with `stat` before using it.",
+    "text": "linux folder /run/user/1000 purpose runtime directory login session",
+    "source_title": "systemd manual: pam_systemd(8)",
+    "source_url": "https://www.freedesktop.org/software/systemd/man/latest/pam_systemd.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-detached-terminal",
+    "title": "Reconnect to a process in a detached terminal",
+    "answer": "You can reattach only if the process was started inside a persistent terminal session such as `screen` or `tmux`: use `screen -r` or `tmux attach`. An ordinary shell process cannot generally be moved back into a terminal after detaching; specialized tools such as `reptyr` have limitations and can affect a live process.",
+    "text": "linux attach terminal detached process reconnect screen tmux reptyr",
+    "source_title": "GNU Screen manual",
+    "source_url": "https://www.gnu.org/software/screen/manual/screen.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-logrotate",
+    "title": "Validate and apply a logrotate configuration change",
+    "answer": "Run `sudo logrotate -d /etc/logrotate.conf` to debug a configuration without rotating logs. `sudo logrotate -f /etc/logrotate.conf` forces rotation and can change files, so inspect the relevant stanza and post-rotate actions first. Many distributions invoke logrotate from a timer or cron job; verify that the change is picked up by the configured schedule.",
+    "text": "linux logrotate change take effect config debug force rotate service logs",
+    "source_title": "logrotate manual: logrotate(8)",
+    "source_url": "https://man7.org/linux/man-pages/man8/logrotate.8.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-process-user",
+    "title": "List processes owned by a Linux user",
+    "answer": "Use `ps -u USER -o pid,ppid,stat,%cpu,%mem,cmd` to list processes with effective user USER. Use `ps -U USER -o pid,ppid,stat,%cpu,%mem,cmd` to select by real user ID instead. Replace USER with a verified account name or UID; `id USER` checks the account. Inspect the command and owner before sending any signal.",
+    "text": "linux see list processes created by specific user uid ps -u USER",
+    "source_title": "Linux man-pages: ps(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/ps.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-oom",
+    "title": "Understand how the Linux OOM killer chooses a process",
+    "answer": "When memory cannot be reclaimed, the kernel’s out-of-memory (OOM) handling selects a process using an adjustment score and other kernel heuristics; it is not simply “the largest process always loses.” Inspect kernel messages with `journalctl -k -b` and per-process `/proc/PID/oom_score` and `oom_score_adj`. Do not change `oom_score_adj` without understanding the service and host-wide consequences.",
+    "text": "linux OOM killer decide which process killed oom_score oom_score_adj kernel memory",
+    "source_title": "Linux kernel documentation: Out of Memory Handling",
+    "source_url": "https://docs.kernel.org/mm/oom.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-screen-sessions",
+    "title": "List and close GNU Screen sessions safely",
+    "answer": "Run `screen -ls` to list sessions. Reattach with `screen -r SESSION`; to terminate one session, attach to that specific session and exit it, or use `screen -S SESSION -X quit` after confirming the session ID. Avoid killing every `screen` process by name because that can stop unrelated users’ work.",
+    "text": "linux kill all screens list GNU Screen sessions screen -ls -X quit",
+    "source_title": "GNU Screen manual",
+    "source_url": "https://www.gnu.org/software/screen/manual/screen.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-bin-paths",
+    "title": "Why `/bin` and `/usr/bin` may be the same path",
+    "answer": "Historically, `/bin` held essential commands needed before `/usr` was mounted, while `/usr/bin` held other user commands. On many current distributions, `/bin` is a symlink into `/usr/bin` as part of the “usr merge”; other systems may retain separate directories. Check with `ls -ld /bin /usr/bin` rather than assuming they are identical.",
+    "text": "linux difference /bin /usr/bin usr merge symlink distribution",
+    "source_title": "systemd project: The Case for the /usr Merge",
+    "source_url": "https://www.freedesktop.org/wiki/Software/systemd/TheCaseForTheUsrMerge/",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-reboot-commands",
+    "title": "Compare reboot, init 6, and shutdown -r",
+    "answer": "On a systemd machine, `systemctl reboot` requests an orderly reboot through systemd. `shutdown -r now` also requests a reboot and supports scheduling or a warning message. `init 6` is a legacy runlevel-style request whose behavior depends on the init system. On a remote or production machine, check active work and use the distribution’s documented method; all three can interrupt services.",
+    "text": "linux difference reboot init 6 shutdown -r now restart systemd",
+    "source_title": "systemd manual: systemctl(1)",
+    "source_url": "https://www.freedesktop.org/software/systemd/man/latest/systemctl.html",
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: shutdown(8)",
+        "url": "https://man7.org/linux/man-pages/man8/shutdown.8.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-install-time",
+    "title": "Can Linux show when it was installed?",
+    "answer": "There is no universal, authoritative “installation timestamp” on a Linux system. Filesystem creation times, package database dates, and log files can provide clues, but they may predate or postdate installation, be copied, or be lost during upgrades. Treat any estimate as a clue rather than proof; consult provisioning records or backups for a reliable date.",
+    "text": "linux determine how long ago system installed installation date filesystem creation time",
+    "source_title": "Linux man-pages: stat(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/stat.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-virtualization",
+    "title": "Detect whether Linux is running in a VM or container",
+    "answer": "Run `systemd-detect-virt` to print a detected virtualization technology when systemd’s tool is installed; `systemd-detect-virt --vm` checks for a VM and `--container` for a container. Detection can be unavailable or masked by the environment, so an empty/nonzero result does not prove bare metal.",
+    "text": "linux determine virtualization technology VM hypervisor container systemd-detect-virt",
+    "source_title": "systemd manual: systemd-detect-virt(1)",
+    "source_url": "https://www.freedesktop.org/software/systemd/man/latest/systemd-detect-virt.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-date-command",
+    "title": "Set the Linux system clock from the command line",
+    "answer": "First inspect `timedatectl status` and check whether network time synchronization is active. On a systemd host, an administrator can set the clock with `sudo timedatectl set-time \"YYYY-MM-DD HH:MM:SS\"`, replacing the placeholder with the intended local date and time. A time-sync service may correct it afterward, and a wrong clock can disrupt logs, certificates, and scheduled jobs.",
+    "text": "linux set date through command line timedatectl set-time system clock date manually",
+    "source_title": "systemd manual: timedatectl(1)",
+    "source_url": "https://www.freedesktop.org/software/systemd/man/latest/timedatectl.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-date-cli-arithmetic",
+    "title": "Add days to a date with GNU date",
+    "answer": "With GNU `date`, run `date -d \"2026-11-20 + 10 days\" +%F` to print the resulting ISO date. Replace the example date and offset. GNU `date -d` is not portable to every Unix; macOS/BSD use different options.",
+    "text": "linux command line add X days to date get new date GNU date -d arithmetic",
+    "source_title": "GNU Coreutils manual: date invocation",
+    "source_url": "https://www.gnu.org/software/coreutils/manual/html_node/date-invocation.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-join-files",
+    "title": "Join files previously split with split",
+    "answer": "If the pieces were created by GNU `split` with prefix `part-` and sortable suffixes, use `cat part-* > joined-file` from that directory. If you used the default prefix, replace `part-*` with the actual prefix (often `x*`). Confirm the exact names and order first; a wrong glob can silently produce a corrupted output. Concatenation is correct only when the pieces belong together and are in their original order.",
+    "text": "linux join files again after splitting split cat part files concatenate order best way to join files again after splitting them",
+    "source_title": "GNU Coreutils manual: cat invocation",
+    "source_url": "https://www.gnu.org/software/coreutils/manual/html_node/cat-invocation.html",
+    "extra_sources": [
+      {
+        "title": "GNU Coreutils manual: split invocation",
+        "url": "https://www.gnu.org/software/coreutils/manual/html_node/split-invocation.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-kernel-taint",
+    "title": "What a tainted Linux kernel means",
+    "answer": "A tainted-kernel marker means the running kernel has encountered a condition that affects how kernel developers interpret bug reports, such as a proprietary/out-of-tree module or a serious runtime event. It does not by itself mean the system is infected. Read `/proc/sys/kernel/tainted` and the kernel log; the bit meanings are documented by the kernel project.",
+    "text": "linux tainted kernel meaning /proc/sys/kernel/tainted proprietary module",
+    "source_title": "Linux kernel documentation: Tainted kernels",
+    "source_url": "https://docs.kernel.org/admin-guide/tainted-kernels.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-cifs-permissions",
+    "title": "Understand write permissions on a CIFS mount",
+    "answer": "CIFS/SMB permissions are partly controlled by the server and partly by client mount options. Inspect the mount with `findmnt -t cifs` and the share’s server-side ACLs. Options such as `uid=`, `gid=`, `file_mode=`, and `dir_mode=` can affect the local ownership/mode view when Unix extensions are not used; local `chown` may be unsupported or ignored. Avoid putting share passwords directly in the mount command; use a root-readable credentials file.",
+    "text": "linux mount cifs network drive write permissions chown uid gid file_mode dir_mode",
+    "source_title": "Linux CIFS utilities manual: mount.cifs(8)",
+    "source_url": "https://manpages.debian.org/stable/cifs-utils/mount.cifs.8.en.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-dev-devices",
+    "title": "How Linux creates entries under `/dev`",
+    "answer": "Most device nodes under `/dev` are managed dynamically by the kernel’s `devtmpfs` together with userspace `udev`, which applies rules and creates links or permissions. Inspect a node with `stat` and its properties with `udevadm info`; do not create or delete device nodes by hand unless you are following a specific recovery procedure.",
+    "text": "linux how /dev files created devtmpfs udev device nodes rules how are /dev Linux files created",
+    "source_title": "Linux man-pages: udev(7)",
+    "source_url": "https://man7.org/linux/man-pages/man7/udev.7.html",
+    "extra_sources": [
+      {
+        "title": "Linux kernel documentation: devtmpfs",
+        "url": "https://docs.kernel.org/filesystems/devtmpfs.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-gpu",
+    "title": "Identify Linux graphics adapters and the active renderer",
+    "answer": "`lspci -nnk` can list display adapters and the kernel driver bound to each. For the graphics renderer used by the current desktop session, `glxinfo -B` (from Mesa utilities) reports the OpenGL renderer when available; `nvidia-smi` reports NVIDIA devices and active processes when its driver tools are installed. Hybrid laptops can have one GPU driving the display and another rendering an application.",
+    "text": "linux identify which GPU active graphics card renderer lspci glxinfo nvidia-smi",
+    "source_title": "pciutils manual: lspci(8)",
+    "source_url": "https://man7.org/linux/man-pages/man8/lspci.8.html",
+    "extra_sources": [
+      {
+        "title": "NVIDIA documentation: nvidia-smi",
+        "url": "https://docs.nvidia.com/deploy/nvidia-smi/index.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-swappiness",
+    "title": "Why Linux often starts with swappiness 60",
+    "answer": "`vm.swappiness` is a rough kernel setting for the relative cost of swapping anonymous memory versus reclaiming filesystem cache; it is not a percentage of RAM to use. The default value 60 is a general starting point, not an optimal setting for every workload. Check with `sysctl vm.swappiness`; tune only after measuring memory pressure and I/O for the actual workload.",
+    "text": "linux why swappiness set to 60 default vm.swappiness kernel default",
+    "source_title": "Linux kernel documentation: Virtual memory sysctl",
+    "source_url": "https://docs.kernel.org/admin-guide/sysctl/vm.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-so-version",
+    "title": "Understand shared-library `.so` version numbers",
+    "answer": "A shared object’s filename and ELF `SONAME` identify its ABI compatibility version, not necessarily the package’s full release version. Inspect a library with `readelf -d LIBRARY | grep SONAME` or `objdump -p LIBRARY`; the dynamic loader and package manager manage the installed symlink and library cache. Do not replace system library symlinks manually.",
+    "text": "linux shared object .so version numbers SONAME ABI ldconfig dynamic linker",
+    "source_title": "Linux man-pages: ld.so(8)",
+    "source_url": "https://man7.org/linux/man-pages/man8/ld.so.8.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-symlink-loop",
+    "title": "Diagnose “too many levels of symbolic links”",
+    "answer": "This usually means a symbolic link points to itself or the links form a cycle. Run `namei -l PATH` to inspect each component and `readlink LINK` on suspicious links. Resolve the cycle by correcting the specific link only after checking its target; do not recursively delete paths based on an unresolved link.",
+    "text": "linux too many levels of symbolic links ELOOP symlink cycle readlink namei",
+    "source_title": "Linux man-pages: path_resolution(7)",
+    "source_url": "https://man7.org/linux/man-pages/man7/path_resolution.7.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-high-low-memory",
+    "title": "What “high memory” and “low memory” mean in Linux",
+    "answer": "“High memory” and “low memory” are kernel memory-management terms, especially relevant to older 32-bit architectures where the kernel could not permanently map all physical RAM into its address space. They do not mean high versus low memory usage in `free` or `top`. On most current 64-bit systems this distinction is not a practical way to diagnose RAM pressure.",
+    "text": "linux high memory low memory meaning kernel 32-bit architecture highmem",
+    "source_title": "Linux kernel documentation: High Memory Handling",
+    "source_url": "https://docs.kernel.org/mm/highmem.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-list-year-files",
+    "title": "Show filenames, dates, sizes, and a four-digit year",
+    "answer": "For a quick GNU `ls` display, `ls -lh --time-style=+%Y-%m-%d` shows readable sizes and a four-digit date, along with other long-listing columns. To output only name, date, and byte size, GNU `find` can use `find . -maxdepth 1 -type f -printf '%f\\t%TY-%Tm-%Td\\t%s bytes\\n'`. That format is not portable to every Unix, and newline characters in file names need special handling.",
+    "text": "linux ls show year listing files current directory filename date size long format",
+    "source_title": "GNU Coreutils manual: What information is listed",
+    "source_url": "https://www.gnu.org/software/coreutils/manual/html_node/What-information-is-listed.html",
+    "extra_sources": [
+      {
+        "title": "GNU findutils manual: Print File Information",
+        "url": "https://www.gnu.org/software/findutils/manual/html_node/find_html/Print-File-Information.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-setfacl-defaults",
+    "title": "Set default access for files created under a directory",
+    "answer": "A `umask` affects newly created files for a process; it does not retroactively set permissions across a tree or guarantee one user’s access. For a shared directory, POSIX ACLs can set current and default rules: inspect with `getfacl DIR`, then use `setfacl -m u:USER:rwx DIR` and `setfacl -m d:u:USER:rwx DIR` for the intended user. Apply recursively only after deciding the exact existing-file policy; test on a small directory first.",
+    "text": "linux set default file permissions all folders files directory future ACL setfacl default ACL umask",
+    "source_title": "Linux man-pages: setfacl(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/setfacl.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-file-recovery",
+    "title": "Recover a deleted Linux file",
+    "answer": "There is no universal undelete command. Stop writing to the affected filesystem; new writes can overwrite recoverable data. If the data matters, unmount it when practical and make a block-level image before trying filesystem-specific recovery tools. Recovery success depends on the filesystem, storage, and time since deletion. Restore from a verified backup when available.",
+    "text": "linux recover deleted file files undelete filesystem recovery stop writing unmount image",
+    "source_title": "GNU ddrescue manual",
+    "source_url": "https://www.gnu.org/software/ddrescue/manual/ddrescue_manual.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-ssh-password-safety",
+    "title": "Avoid passing an SSH password as a command argument",
+    "answer": "Do not put an SSH password directly in a command line: it can be exposed through shell history, process listings, logs, or scripts. Use SSH key authentication or let `ssh` prompt interactively. For automation, use a managed SSH key or secret mechanism with limited access rather than a password embedded in a command.",
+    "text": "linux SSH login clear text password parameter command line sshpass argument process list",
+    "source_title": "OpenSSH manual: ssh(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/ssh.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-process-firewall",
+    "title": "Block network access for a Linux process",
+    "answer": "There is no one portable per-process firewall command. A common design is to run the service under a dedicated user or systemd unit and write an outbound firewall rule for that identity or its cgroup. First identify the process owner, active firewall backend, and whether the rule must cover IPv4 and IPv6; test from console access so you do not lock out remote administration. Share the distribution, service unit, and firewall (`nftables`, UFW, or another manager) for a concrete rule.",
+    "text": "linux block network access of a process application per process outbound firewall uid cgroup nftables",
+    "source_title": "nftables manual: nft(8)",
+    "source_url": "https://manpages.debian.org/stable/nftables/nft.8.en.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-desktop-freeze",
+    "title": "Start diagnosing a frozen Linux desktop",
+    "answer": "If only the graphical session is frozen, try switching to a text console with Ctrl+Alt+F3 if the system still responds. From a working session, inspect recent errors with `journalctl -b -p warning..alert --no-pager` and identify the display session and GPU driver. Save work and collect logs before restarting the display manager or rebooting; those actions terminate applications. The useful next step depends on the desktop, display server, and driver.",
+    "text": "linux desktop freezes frozen graphical session wayland x11 tty logs GPU driver",
+    "source_title": "systemd manual: journalctl(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/journalctl.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-freebsd-comparison",
+    "title": "Why someone might choose FreeBSD instead of Linux",
+    "answer": "FreeBSD is a complete operating system with a coordinated base system, kernel, and userland; Linux distributions combine the Linux kernel with userland and release choices made by each distribution. A practical choice depends on hardware support, application availability, documentation, licensing requirements, and the operating environment. Check that required software and drivers support the target before choosing; neither system is universally better.",
+    "text": "Linux FreeBSD choose over comparison complete operating system base system userland hardware software",
+    "source_title": "FreeBSD Handbook: Introduction",
+    "source_url": "https://docs.freebsd.org/en/books/handbook/introduction/",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-video-tearing",
+    "title": "Diagnose video tearing on a Linux desktop",
+    "answer": "Tearing usually points to how frames are synchronized between an application, compositor, display server, driver, and monitor. Check whether the session is Wayland or X11 (`printf '%s\\n' \"$XDG_SESSION_TYPE\"`), identify the GPU and driver, and compare behavior with the compositor enabled. The right fix is driver- and desktop-specific; avoid copying an Xorg configuration snippet without confirming that the session uses Xorg.",
+    "text": "linux video tearing screen compositor vsync Wayland X11 GPU graphics driver",
+    "source_title": "Wayland Protocol Specification: Frame callbacks",
+    "source_url": "https://pq.pages.freedesktop.org/wayland.freedesktop.org/docs/html/apa.html",
+    "extra_sources": [
+      {
+        "title": "systemd manual: pam_systemd(8)",
+        "url": "https://www.freedesktop.org/software/systemd/man/latest/pam_systemd.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-process-user-stop",
+    "title": "Stop a user’s Linux processes carefully",
+    "answer": "First verify the account and inspect its processes with `ps -u USER -o pid,ppid,stat,cmd`. On a systemd host, `sudo loginctl terminate-user USER` terminates all of that user’s login sessions and their session processes, but it may not stop every system service owned by the account. For a literal UID-wide stop, identify which services will be affected and use the host’s service manager; a blanket signal can interrupt databases, jobs, and remote sessions.",
+    "text": "linux kill all a users processes UID stop process user pkill -TERM account process kill all UID processes loginctl terminate-user process owner safety",
+    "source_title": "systemd manual: loginctl(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/loginctl.1.html",
+    "extra_sources": [
+      {
+        "title": "Linux man-pages: ps(1)",
+        "url": "https://man7.org/linux/man-pages/man1/ps.1.html"
+      }
+    ],
+    "followups": {}
+  },
+  {
+    "id": "linux-ssh-agent",
+    "title": "Start or locate an SSH agent",
+    "answer": "If this shell has no agent, start one with `eval \"$(ssh-agent -s)\"`; that sets `SSH_AUTH_SOCK` and `SSH_AGENT_PID` in the current shell. Then add a key with `ssh-add ~/.ssh/id_ed25519` if that is the correct key. A desktop login may already manage an agent; check `echo \"$SSH_AUTH_SOCK\"` before starting another. Never share a private key.",
+    "text": "linux ssh-add Error connecting to agent No such file or directory SSH_AUTH_SOCK ssh-agent",
+    "source_title": "OpenSSH manual: ssh-agent(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/ssh-agent.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-find-permission-errors",
+    "title": "Handle permission errors from find",
+    "answer": "To suppress permission error messages while searching, redirect standard error: `find /path -type f -name \"PATTERN\" -print 2>/dev/null`. This hides all errors, so the result may be incomplete. If you need a complete search, use an account with access or an approved `sudo find` command; do not change permissions just to silence the message.",
+    "text": "linux skip ignore permission denied errors running find 2>/dev/null stderr find command skip permission denied errors running find when searching",
+    "source_title": "Linux man-pages: find(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/find.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-proc-pid-mem",
+    "title": "Read a process memory file under /proc",
+    "answer": "`/proc/PID/mem` exposes the process’s virtual memory and is protected by Linux ptrace access checks; being root or the same UID does not always guarantee access under every security policy. The file is binary and address-based, so ordinary `cat` is not a meaningful way to inspect it. For authorized debugging, use a debugger such as GDB and inspect `/proc/PID/maps` to understand mappings; attaching can pause or affect the target process and expose secrets in its memory.",
+    "text": "linux read from /proc/$pid/mem process virtual memory ptrace access checks gdb maps",
+    "source_title": "Linux man-pages: proc_pid_mem(5)",
+    "source_url": "https://man7.org/linux/man-pages/man5/proc_pid_mem.5.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-grub-default",
+    "title": "Choose a default Linux kernel in GRUB",
+    "answer": "The method depends on the distribution and GRUB configuration. On GRUB setups using saved entries, the GNU GRUB manual supports `GRUB_DEFAULT=saved` with `grub-set-default MENU_ENTRY`; Debian-family systems usually regenerate configuration with `sudo update-grub`, while Fedora-family systems commonly use `grubby`. Do not edit generated `grub.cfg` directly. First identify the distribution, list the exact menu entry, back up configuration, and ensure console or recovery access before changing the boot default.",
+    "text": "linux set default kernel grub boot entry GRUB_DEFAULT saved grub-set-default update-grub grubby",
+    "source_title": "GNU GRUB Manual: Simple configuration",
+    "source_url": "https://www.gnu.org/software/grub/manual/grub/html_node/Simple-configuration.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-video-sections",
+    "title": "Download a time range from a video URL",
+    "answer": "With current `yt-dlp` and FFmpeg installed, use `yt-dlp --download-sections \"*00:01:20-00:02:45\" URL` to request that time range. Replace the timestamps and URL; section boundaries may not be frame-exact depending on the source and media format. Older `youtube-dl` versions may not support this option. Download only content you have permission to save.",
+    "text": "linux download portion video youtube-dl command video timestamp range --download-sections yt-dlp ffmpeg",
+    "source_title": "yt-dlp project documentation",
+    "source_url": "https://github.com/yt-dlp/yt-dlp",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-diff-output",
+    "title": "Read unified diff output",
+    "answer": "Run `diff -u OLD_FILE NEW_FILE` for a readable comparison. Lines beginning with `-` exist in OLD_FILE and were removed; `+` lines exist in NEW_FILE and were added. The `@@` header gives the old and new line ranges for each changed hunk. `diff` returns status 1 when differences are found, which is normal and is not an execution error.",
+    "text": "linux understand diff output unified diff + - @@ lines files comparison",
+    "source_title": "Linux man-pages: diff(1)",
+    "source_url": "https://man7.org/linux/man-pages/man1/diff.1.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-systemd-resolved-stub",
+    "title": "Why resolv.conf points to 127.0.0.53",
+    "answer": "On many systemd-resolved setups, `127.0.0.53` is a local loopback DNS stub. Applications send DNS queries to the local stub, and systemd-resolved forwards them according to the active per-link DNS configuration. Inspect it with `resolvectl status` and check the `/etc/resolv.conf` link with `readlink -f /etc/resolv.conf`; do not replace the file until you know which resolver service manages it.",
+    "text": "linux /etc/resolv.conf 127.0.0.53 systemd-resolved local loopback DNS stub resolver symlink",
+    "source_title": "systemd manual: systemd-resolved(8)",
+    "source_url": "https://www.freedesktop.org/software/systemd/man/latest/systemd-resolved.html",
+    "extra_sources": [],
+    "followups": {}
+  },
+  {
+    "id": "linux-mono-runtime",
+    "title": "What Mono does behind the scenes",
+    "answer": "Mono is an implementation of the ECMA Common Language Infrastructure used to run managed .NET assemblies. Its runtime loads assemblies, provides garbage collection and runtime services, and can compile code just in time (JIT) or ahead of time (AOT). It is not magical: applications still depend on the APIs and runtime behavior available in the installed Mono version. Check the project and application requirements before choosing Mono or modern .NET.",
+    "text": "Linux Mono magical runtime .NET assembly CLI virtual machine JIT AOT garbage collector how does Mono work",
+    "source_title": "Mono project: The Mono Runtime",
+    "source_url": "https://www.mono-project.com/docs/advanced/runtime/",
     "extra_sources": [],
     "followups": {}
   }
