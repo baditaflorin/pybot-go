@@ -145,6 +145,20 @@ func TestUnknownQuestionAbstains(t *testing.T) {
 	}
 }
 
+func TestCapabilityQuestionDescribesUsefulBoundaries(t *testing.T) {
+	for _, question := range []string{"What can you do?", "What you can do?"} {
+		response := New(1).Reply(question)
+		if response.Module != "conversation/capabilities" {
+			t.Fatalf("question %q used module %q, want capability answer", question, response.Module)
+		}
+		for _, want := range []string{"remember facts", "follow-ups", "square roots", "capital of Romania", "source link", "don't use a generative LLM"} {
+			if !strings.Contains(response.Text, want) {
+				t.Fatalf("capability response %q is missing %q", response.Text, want)
+			}
+		}
+	}
+}
+
 func TestFallbackWordingIsRepeatableForSeed(t *testing.T) {
 	first := New(12)
 	second := New(12)

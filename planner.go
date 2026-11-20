@@ -74,6 +74,12 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	if isAgeQuestion(lower) {
 		return b.answerAgeFact(lower)
 	}
+	if isCapabilityQuestion(lower) {
+		return Response{
+			Text:   "I can remember facts you tell me in this chat and answer follow-ups; compare or rank ages; calculate arithmetic and square roots; convert common units; and work out dates. I can answer a few built-in topics and look up other factual questions with a source link. For example, ask who is older, the square root of 2, or the capital of Romania. The CPU transformer helps match wording to these routes; it doesn't write answers. I don't use a generative LLM or GPU.",
+			Module: "conversation/capabilities",
+		}
+	}
 	if updates > 0 && isStandaloneStatement(lower) {
 		return b.acknowledgeFacts()
 	}
@@ -133,6 +139,19 @@ func normalizeText(text string) string {
 func isNameQuestion(text string) bool {
 	return strings.Contains(text, "what's my name") || strings.Contains(text, "what is my name") ||
 		strings.Contains(text, "do you remember my name") || strings.Contains(text, "who am i")
+}
+
+func isCapabilityQuestion(text string) bool {
+	for _, phrase := range []string{
+		"what can you do", "what you can do", "what can i ask", "what can i ask you", "what are you able to do",
+		"what are your capabilities", "what questions can you answer", "how can you help me",
+		"what kind of questions can you answer", "what do you do", "list your capabilities",
+	} {
+		if strings.Contains(text, phrase) {
+			return true
+		}
+	}
+	return false
 }
 
 func isAgeComparison(text string) bool {

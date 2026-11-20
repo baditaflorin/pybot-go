@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2 - 2026-11-20
+
+- Answer capability questions directly with a concrete list of supported tasks and limits instead of sending them to factual lookup.
+
 ## 0.5.1 - 2026-11-20
 
 - Version browser asset URLs so repeat visitors do not keep using cached pre-embedding JavaScript or WebAssembly after an update.
