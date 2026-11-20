@@ -10,7 +10,7 @@ import (
 )
 
 // Version is the version of this Go implementation.
-const Version = "0.3.0"
+const Version = "0.4.0"
 
 // Source identifies a local knowledge document's original source.
 type Source struct {
@@ -20,10 +20,10 @@ type Source struct {
 
 // Response contains an answer, its route, and optional evidence links.
 type Response struct {
-	Text               string
-	Module             string
-	Sources            []Source
-	NeedsClarification bool
+	Text               string   `json:"text"`
+	Module             string   `json:"module"`
+	Sources            []Source `json:"sources,omitempty"`
+	NeedsClarification bool     `json:"needs_clarification,omitempty"`
 }
 
 // Fact is a typed, conversation-scoped value extracted from a user message.

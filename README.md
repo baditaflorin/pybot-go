@@ -4,6 +4,10 @@ PyBot Go is a small, CPU-only conversational assistant inspired by [Hugging Face
 
 This is a deliberately bounded assistant, not an attempt to reproduce the upstream Python experiment or its large generated knowledge base. It is designed to answer a useful set of questions reliably and to say when it does not know.
 
+## Try the live browser demo
+
+Open [pybot.0sample.com](https://pybot.0sample.com). The bot runs in Go WebAssembly in your browser. There is no chat API: prompts and conversation facts stay in the current tab and clear when you start a new chat or reload. The page fetches only its static site files and WebAssembly bundle.
+
 ## What it can do
 
 - **Compare ages:** remember names and age statements for the current conversation, compare two or more people, and report the age difference.
@@ -52,6 +56,15 @@ go build -o pybot ./cmd/pybot
 go install github.com/baditaflorin/pybot-go/cmd/pybot@latest
 ```
 
+Build the static GitHub Pages bundle locally:
+
+```sh
+./scripts/build-pages.sh
+python3 -m http.server --directory docs 8080
+```
+
+Then open `http://localhost:8080`. The build script creates the published `docs/` files, including the Go runtime bundle and the matching `wasm_exec.js` from the installed Go toolchain.
+
 ## CLI
 
 | Option | Behavior |
@@ -66,7 +79,7 @@ Interactive commands: `/reset` clears conversation memory, `/help` shows command
 
 ## Architecture and boundaries
 
-`Bot.Reply` routes each message through a small planner. Exact solvers handle arithmetic, unit conversion, dates, and age comparisons. The intent model is intentionally small and inspectable; it uses text features and hand-written examples rather than pretrained embeddings. Facts are typed, attributed to the message that supplied them, and scoped to one `Bot` instance. `Reset` clears them. Nothing is persisted or sent over the network.
+`Bot.Reply` routes each message through a small planner. Exact solvers handle arithmetic, unit conversion, dates, and age comparisons. The intent model is intentionally small and inspectable; it uses text features and hand-written examples rather than pretrained embeddings. Facts are typed, attributed to the message that supplied them, and scoped to one `Bot` instance. `Reset` clears them. The browser demo creates one bot per tab and does not send chat messages to a server.
 
 The embedded search uses a BM25-style ranker over a few curated documents. It returns document answers and source URLs, not an open-ended generated summary. The corpus is in [`knowledge/docs.json`](knowledge/docs.json); each entry needs a source title and valid HTTP(S) source URL. The included egg source supports a safe temperature for egg dishes, not universal boiling times. The kettle answer applies only to the linked KRUPS Control Line model.
 

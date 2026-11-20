@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <meta name="description" content="Try PyBot Go, a CPU-only assistant that solves small, explicit tasks without an LLM.">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; connect-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
+    <title>PyBot Go — Browser Lab</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./app.css">
+    <script defer src="./wasm_exec.js"></script>
+    <script defer src="./app.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="PyBot Go home">
+        <span class="brand-mark" aria-hidden="true">p.</span>
+        <span>pybot<span class="brand-muted">/go</span></span>
+      </a>
+      <div class="topbar-right">
+        <span class="privacy-pill"><span class="privacy-dot"></span> Runs in your browser</span>
+        <a class="source-link" href="https://github.com/baditaflorin/pybot-go" target="_blank" rel="noopener noreferrer">Source <span aria-hidden="true">↗</span></a>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="intro" aria-labelledby="page-title">
+        <p class="eyebrow"><span class="eyebrow-line"></span> CPU-only · no LLM</p>
+        <h1 id="page-title">A small bot.<br><span>Clear answers.</span></h1>
+        <p class="intro-copy">Try structured memory, exact solvers, and cited local knowledge in a real conversation. No account needed.</p>
+        <div class="capability-row" aria-label="Capabilities">
+          <span>Age comparison</span>
+          <span>Arithmetic</span>
+          <span>Unit conversion</span>
+          <span>Date math</span>
+          <span>Sourced answers</span>
+        </div>
+      </section>
+
+      <section class="workspace" aria-label="PyBot conversation">
+        <div class="chat-card">
+          <div class="chat-header">
+            <div class="chat-title-wrap">
+              <div class="bot-avatar" aria-hidden="true">p.</div>
+              <div>
+                <h2>PyBot Go</h2>
+                <div class="runtime-status" id="runtime-status" role="status"><span class="status-dot loading"></span><span>Loading browser runtime…</span></div>
+              </div>
+            </div>
+            <button class="reset-button" id="reset-button" type="button" title="Clear this conversation" disabled>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4.5 5.5h11M8 5.5V4h4v1.5m2.5 0-.6 10H6.1l-.6-10M8.2 8v5m3.6-5v5"/></svg>
+              <span>New chat</span>
+            </button>
+          </div>
+
+          <div class="messages" id="messages" aria-live="polite" aria-relevant="additions text">
+            <article class="message assistant-message">
+              <div class="message-avatar" aria-hidden="true">p.</div>
+              <div class="message-content">
+                <div class="message-meta"><span>PyBot</span><span class="meta-separator">·</span><span>ready to try</span></div>
+                <div class="bubble">Hi. Give me a fact or a concrete question. I’ll show which capability handled it and cite sources when I use local knowledge.</div>
+              </div>
+            </article>
+          </div>
+
+          <form class="composer" id="composer">
+            <label class="visually-hidden" for="prompt">Your message</label>
+            <textarea id="prompt" name="prompt" rows="1" maxlength="2000" placeholder="Ask PyBot something…" autocomplete="off" spellcheck="true" disabled></textarea>
+            <div class="composer-footer">
+              <span class="input-hint">Enter to send <span aria-hidden="true">·</span> Shift + Enter for a new line</span>
+              <button class="send-button" id="send-button" type="submit" aria-label="Send message" disabled>
+                <span>Send</span>
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3.5 10h12m-5-5 5 5-5 5"/></svg>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <aside class="try-panel" aria-labelledby="try-title">
+          <div class="try-heading">
+            <div>
+              <p class="eyebrow-small">START WITH A TEST</p>
+              <h2 id="try-title">Try a prompt</h2>
+            </div>
+            <span class="sparkle" aria-hidden="true">✳</span>
+          </div>
+          <div class="prompt-list">
+            <button class="prompt-card" type="button" data-prompt="Alice is 12 years old. Bob is 50 years old. Who is older?">
+              <span class="prompt-icon icon-people" aria-hidden="true">↗</span>
+              <span><strong>Compare ages</strong><small>Alice is 12, Bob is 50. Who is older?</small></span>
+              <span class="prompt-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="prompt-card" type="button" data-prompt="What is (18 + 6) / 3?">
+              <span class="prompt-icon icon-math" aria-hidden="true">∑</span>
+              <span><strong>Calculate exactly</strong><small>What is (18 + 6) / 3?</small></span>
+              <span class="prompt-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="prompt-card" type="button" data-prompt="How many inches are in 2 meters?">
+              <span class="prompt-icon icon-units" aria-hidden="true">↔</span>
+              <span><strong>Convert units</strong><small>How many inches in 2 meters?</small></span>
+              <span class="prompt-arrow" aria-hidden="true">→</span>
+            </button>
+            <button class="prompt-card" type="button" data-prompt="Why do onions make my eyes water when I cut them?">
+              <span class="prompt-icon icon-source" aria-hidden="true">⌕</span>
+              <span><strong>Ask a sourced question</strong><small>Why do onions make eyes water?</small></span>
+              <span class="prompt-arrow" aria-hidden="true">→</span>
+            </button>
+          </div>
+          <p class="try-note"><span class="note-check" aria-hidden="true">✓</span> Your prompt stays in this tab. The bot and its small knowledge base run locally in WebAssembly.</p>
+        </aside>
+      </section>
+
+      <footer class="page-footer">
+        <span>Built with Go · WebAssembly · local sources</span>
+        <span>Conversation memory clears when you start a new chat or reload.</span>
+      </footer>
+    </main>
+  </body>
+</html>

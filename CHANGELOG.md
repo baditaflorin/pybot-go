@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0 - 2026-11-20
+
+- Add a browser chat interface that runs the Go bot locally as WebAssembly.
+- Add age, arithmetic, unit-conversion, and sourced-question examples; show route details and source links in the UI.
+- Add a reproducible GitHub Pages build for `https://pybot.0sample.com` with no chat API or external runtime dependency.
+
 ## 0.3.0 - 2026-11-18
 
 - Replace generic rule scoring with a small, inspectable Naive Bayes intent router and a conservative query planner.
