@@ -52,6 +52,7 @@ var intentAliases = []phraseAlias{
 	{regexp.MustCompile(`\bhow have things been\b`), "how are you"},
 	{regexp.MustCompile(`\bwork out\b`), "calculate"},
 	{regexp.MustCompile(`\bfigure out\b`), "calculate"},
+	{regexp.MustCompile(`\bmultiplied by\b`), "times"},
 	{regexp.MustCompile(`\bexpress\b`), "convert"},
 	{regexp.MustCompile(`\btranslate\b`), "convert"},
 	{regexp.MustCompile(`\bweekday\b`), "date day"},
@@ -161,6 +162,7 @@ var intentExamples = []intentExample{
 
 	{intentThanks, "thanks"}, {intentThanks, "thank you"}, {intentThanks, "thanks a lot"},
 	{intentThanks, "i appreciate it"}, {intentThanks, "much appreciated"},
+	{intentThanks, "thank you for the help"},
 
 	{intentSmallTalk, "how are you"}, {intentSmallTalk, "how are you doing"},
 	{intentSmallTalk, "are you doing okay"}, {intentSmallTalk, "how is it going"},

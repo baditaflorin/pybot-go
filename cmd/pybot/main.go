@@ -186,7 +186,7 @@ func chat(bot *pybot.Bot, first string, stdin io.Reader, stdout, stderr io.Write
 			attribute := strings.TrimSpace(strings.TrimPrefix(command, "/forget "))
 			question := map[string]string{"name": "forget my name", "age": "forget my age", "distro": "forget my distro", "distribution": "forget my distro"}[attribute]
 			if question == "" {
-				_, _ = fmt.Fprintln(stdout, "Use /forget name, /forget age, or /forget distro.\n")
+				_, _ = fmt.Fprint(stdout, "Use /forget name, /forget age, or /forget distro.\n\n")
 				continue
 			}
 			response := bot.Reply(question)
