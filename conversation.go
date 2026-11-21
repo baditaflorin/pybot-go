@@ -9,7 +9,8 @@ import (
 var linuxDistroRE = regexp.MustCompile(`(?i)\b(ubuntu|debian|fedora|rhel|red\s+hat|rocky(?:\s+linux)?|alma(?:linux)?|arch(?:\s+linux)?|opensuse|suse|alpine|linux\s+mint|mint|pop!?_?os|manjaro|gentoo|nixos)(?:\s+(\d+(?:\.\d+)*))?\b`)
 var commandInAnswerRE = regexp.MustCompile("`([^`]+)`")
 var trailingDistroPrepositionRE = regexp.MustCompile(`(?i)\b(on|for|using)\s*$`)
-var externalSingularPronounRE = regexp.MustCompile(`\b(it|that|there|he|she|its)\b`)
+var externalEntityPronounRE = regexp.MustCompile(`(?i)\b(?:it|that|there|they|he|she|its|their|those|these|them)\b`)
+var externalSingularPronounRE = regexp.MustCompile(`(?i)\b(?:it|that|there|he|she|its)\b`)
 
 func suggestedFollowups(response Response) []string {
 	switch {
@@ -447,10 +448,14 @@ func replaceLinuxDistro(question, distro string) string {
 }
 
 func isEntityFollowup(text string) bool {
+	text = strings.ToLower(text)
 	if len(strings.Fields(text)) > 14 {
 		return false
 	}
-	return containsAny(text, "that", "there", "they", "he", "she", "its", "their", "tell me more", "what about", "more detail", "elaborate", "population", "how many people", "people live", "river", "area", "how big", "how large", "when was it", "history") || containsWholeWord(text, "it")
+	if externalEntityPronounRE.MatchString(text) || containsAny(text, "tell me more", "what about", "more detail", "elaborate") {
+		return true
+	}
+	return oneOf(text, "population", "how many people", "people live", "river", "area", "how big", "how large", "residents", "inhabitants", "history")
 }
 
 func containsWholeWord(text, word string) bool {

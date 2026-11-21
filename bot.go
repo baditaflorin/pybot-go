@@ -11,7 +11,7 @@ import (
 )
 
 // Version is the version of this Go implementation.
-const Version = "0.10.3"
+const Version = "0.10.4"
 
 // Source identifies a local knowledge document's original source.
 type Source struct {

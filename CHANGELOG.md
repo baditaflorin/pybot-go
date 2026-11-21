@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.4 - 2026-11-21
+
+- Match entity-reference pronouns as whole words so phrases such as “the square root” do not become false follow-ups.
+- Keep demonstratives such as “those” and “them” as valid references to earlier topics.
+- Treat short attribute-only prompts as follow-ups while allowing complete new questions to reach their own solver or lookup.
+
 ## 0.10.3 - 2026-11-21
 
 - Resolve singular pronouns in open-topic follow-ups into the remembered article topic.

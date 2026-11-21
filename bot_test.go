@@ -203,6 +203,25 @@ func TestExternalEntityFollowupResolvesSingularPronoun(t *testing.T) {
 	}
 }
 
+func TestExternalTopicDoesNotCaptureSquareRootQuestion(t *testing.T) {
+	bot := New(1)
+	question := "What is a black hole?"
+	bot.Reply(question)
+	bot.RememberResponse(question, Response{
+		Text:   "A black hole is an astronomical body whose gravity prevents light from escaping.",
+		Module: "retrieval/wikipedia",
+		Sources: []Source{{
+			Title: "Wikipedia · Black hole",
+			URL:   "https://en.wikipedia.org/wiki/Black_hole",
+		}},
+	})
+
+	response := bot.Reply("What is the square root of 2?")
+	if response.Module != "reasoning/arithmetic" || response.Text != "≈ 1.414213562373" {
+		t.Fatalf("response = %#v, want the deterministic square-root answer", response)
+	}
+}
+
 func TestCapabilityQuestionDescribesUsefulBoundaries(t *testing.T) {
 	for _, question := range []string{"What can you do?", "What you can do?", "What can you do on Linux?"} {
 		response := New(1).Reply(question)
