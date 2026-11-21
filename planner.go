@@ -112,7 +112,16 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	if response, handled := solveArithmetic(lower); handled {
 		return response
 	}
-	if isNameQuestion(lower) || (messageIntent == intentNameQuestion && routeTrusted) {
+	if response, handled := answerPracticalAdvice(lower); handled {
+		return response
+	}
+	if response, handled := answerContextDependentQuestion(lower); handled {
+		return response
+	}
+	if response, handled := answerCuratedGeneralFact(lower); handled {
+		return response
+	}
+	if isNameQuestion(lower) || (messageIntent == intentNameQuestion && routeTrusted && !isSocialQuestion(lower)) {
 		if name := b.memory.name(); name != "" {
 			return Response{Text: "Your name is " + name + ".", Module: "memory/name"}
 		}
@@ -139,12 +148,23 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	if isThanks(lower) || (messageIntent == intentThanks && routeTrusted) {
 		return Response{Text: "You're welcome!", Module: "conversation/thanks"}
 	}
-	if strings.Contains(lower, "who are you") || strings.Contains(lower, "what are you") ||
+	if strings.Contains(lower, "who are you") || (strings.Contains(lower, "what are you") && !strings.Contains(lower, "what are your")) ||
 		(messageIntent == intentIdentity && routeTrusted) {
 		return Response{Text: "I'm PyBot Go: a CPU-only assistant that routes with a small statistical model, stores typed facts for this conversation, solves exact problems, and retrieves from a local knowledge base. I don't use an LLM.", Module: "conversation/identity"}
 	}
 	if strings.Contains(lower, "how are you") || (messageIntent == intentSmallTalk && routeTrusted) {
-		return Response{Text: "I'm running fine. What would you like to work out?", Module: "conversation/small-talk"}
+		return Response{Text: "I'm here and ready to help. What are you working on?", Module: "conversation/small-talk"}
+	}
+	if isSocialQuestion(lower) {
+		return answerSocialQuestion(lower)
+	}
+	if routeTrusted && !isInformationSeekingMessage(lower) {
+		if messageIntent == intentSocialQuestion {
+			return answerSocialQuestion(lower)
+		}
+		if response, handled := answerDialogueIntent(lower, messageIntent); handled {
+			return response
+		}
 	}
 	searchQuery := lower
 	if messageIntent == intentLinuxExpert && linuxDistro(lower) == "" && b.memory.linuxDistribution() != "" {
@@ -169,6 +189,36 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 			Module:  "retrieval/" + result.Document.ID,
 			Sources: sources,
 		}
+	}
+	if response, handled := answerPersonalExperienceRequest(lower); handled {
+		return response
+	}
+	if reference, unresolved := unresolvedContextQuestion(text); unresolved {
+		clarification := fmt.Sprintf("What does %q refer to here? Name the person or thing and I'll pick up the question from there.", reference)
+		if reference == "he" || reference == "she" || reference == "him" || reference == "her" {
+			clarification = fmt.Sprintf("Who do you mean by %q? Name the person and I'll pick up the question from there.", reference)
+		}
+		return Response{
+			Text: clarification, Module: "conversation/context-clarify", NeedsClarification: true,
+			Suggestions: []string{"Name the person or thing", "Ask a new question"},
+		}
+	}
+	if strings.Contains(lower, "?") {
+		clarification := "I may be missing context. Which person, place, item, or detail are you asking about?"
+		if strings.HasPrefix(lower, "what about ") {
+			topic := strings.TrimSpace(strings.TrimRight(text[len("what about "):], " ?.!,"))
+			if topic != "" {
+				clarification = fmt.Sprintf("What would you like to know about %s?", topic)
+			}
+		}
+		return Response{
+			Text: clarification, Module: "conversation/question-clarify", NeedsClarification: true,
+			Suggestions: []string{"Add the missing context", "Ask a factual question"},
+		}
+	}
+	if isConversationalStatement(lower) {
+		response, _ := answerDialogueIntent(lower, intentDialogueStatement)
+		return response
 	}
 	return Response{
 		Text:   randomFallback(b.rng),
@@ -231,7 +281,9 @@ func tailorLinuxPackageAnswer(document knowledgeDocument, distro string) (string
 
 func parseSemanticIntent(value string) intent {
 	switch intent(value) {
-	case intentAgeComparison, intentAgeRanking, intentArithmetic, intentConversion, intentDate, intentKnowledge, intentLinuxExpert:
+	case intentAgeComparison, intentAgeRanking, intentArithmetic, intentConversion, intentDate, intentKnowledge, intentLinuxExpert,
+		intentDialogueStatement, intentDialoguePositive, intentDialogueNegative, intentDialogueAgree, intentDialogueOffer,
+		intentDialogueRequest, intentSocialQuestion:
 		return intent(value)
 	case intentContextFollowup:
 		return intentContextFollowup
@@ -246,7 +298,8 @@ func normalizeText(text string) string {
 
 func isNameQuestion(text string) bool {
 	return strings.Contains(text, "what's my name") || strings.Contains(text, "what is my name") ||
-		strings.Contains(text, "do you remember my name") || strings.Contains(text, "who am i")
+		strings.Contains(text, "do you remember my name") || strings.Contains(text, "who am i") ||
+		strings.Contains(text, "what do you call me") || strings.Contains(text, "what name did i tell you")
 }
 
 func isCapabilityQuestion(text string) bool {
