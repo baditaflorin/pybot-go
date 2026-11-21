@@ -328,14 +328,20 @@
     if (typeof window.pybotSemanticRankCandidates === "function") {
       semanticScores = await window.pybotSemanticRankCandidates(question, pages.map((page) => `${page.title}. ${page.extract}`));
     }
-    const maxIndex = Math.max(...pages.map((page, index) => Number.isFinite(page.index) ? page.index : index));
-    const page = pages.map((candidate, index) => {
-      const rank = Number.isFinite(candidate.index) ? candidate.index : index;
-      const searchScore = 1 - rank / (maxIndex + 1);
+    const rankedPages = pages.map((candidate, index) => ({
+      candidate,
+      rank: Number.isFinite(candidate.index) ? candidate.index : index,
+      index,
+    }));
+    const minRank = Math.min(...rankedPages.map((item) => item.rank));
+    const maxRank = Math.max(...rankedPages.map((item) => item.rank));
+    const rankRange = Math.max(1, maxRank - minRank);
+    const page = rankedPages.map(({ candidate, rank, index }) => {
+      const searchScore = 1 - (rank - minRank) / rankRange;
       const semanticScore = semanticScores?.[index];
       const score = semanticScore == null
-        ? searchScore * 0.8 + lexicalScores[index] * 0.2
-        : searchScore * 0.55 + semanticScore * 0.25 + lexicalScores[index] * 0.2;
+        ? searchScore * 0.95 + lexicalScores[index] * 0.05
+        : searchScore * 0.65 + semanticScore * 0.25 + lexicalScores[index] * 0.1;
       return { candidate, score };
     }).sort((a, b) => b.score - a.score)[0].candidate;
     const sourceText = String(page.extract).replace(/\s+/g, " ").trim();
@@ -521,7 +527,7 @@
     }
     try {
       const go = new Go();
-      const binary = await fetch("./pybot.wasm?v=0.10.1");
+      const binary = await fetch("./pybot.wasm?v=0.10.2");
       if (!binary.ok) throw new Error("WebAssembly bundle is unavailable.");
       const result = await WebAssembly.instantiate(await binary.arrayBuffer(), go.importObject);
       void go.run(result.instance).catch(() => setReady(false, "Runtime failed to load."));
