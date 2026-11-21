@@ -332,6 +332,19 @@
     return /^(what|who|where|when|why|which|how|define|explain|tell me about|can you (tell|give|name|list|explain|show|describe)|at what)\b/i.test(question) || question.endsWith("?");
   }
 
+  function normalizeFactualLookupQuery(text) {
+    const question = text.trim();
+    const wrappers = [
+      /^(?:can|could|would) you (?:please )?(?:give me|tell me|show me)\s+(?:(?:a|an|the)\s+)?(?:(?:quick|brief|short)\s+)?(?:overview|summary|description|introduction)\s+(?:of|about)\s+/i,
+      /^(?:can|could|would) you (?:please )?tell me about\s+/i,
+      /^(?:please\s+)?tell me about\s+/i,
+    ];
+    for (const wrapper of wrappers) {
+      if (wrapper.test(question)) return question.replace(wrapper, "").replace(/[?.!]+\s*$/, "").trim();
+    }
+    return question;
+  }
+
   async function sendMessage(text) {
     const value = text.trim();
     if (!value || typeof window.pybotReply !== "function" || sending) return;
@@ -353,7 +366,7 @@
         ? await window.pybotSemanticClassify(value, context)
         : { intent: "", score: 0 };
       let response = JSON.parse(window.pybotReply(value, semantic.intent || "", semantic.score || 0));
-      const lookupQuery = response.lookup_query || (response.module === "conversation/unknown" && isFactualQuestion(value) ? value : "");
+      const lookupQuery = response.lookup_query || (response.module === "conversation/unknown" && isFactualQuestion(value) ? normalizeFactualLookupQuery(value) : "");
       if (lookupQuery) {
         setThinking(true, "Looking up a cited answer…");
         try {
@@ -459,7 +472,7 @@
     }
     try {
       const go = new Go();
-      const binary = await fetch("./pybot.wasm?v=0.9.1");
+      const binary = await fetch("./pybot.wasm?v=0.9.2");
       if (!binary.ok) throw new Error("WebAssembly bundle is unavailable.");
       const result = await WebAssembly.instantiate(await binary.arrayBuffer(), go.importObject);
       void go.run(result.instance).catch(() => setReady(false, "Runtime failed to load."));
