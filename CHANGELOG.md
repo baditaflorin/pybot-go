@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.1 - 2026-11-21
+
+- Add a 50-scenario conversation evaluation covering memory, follow-ups, calculations, Linux help, answer preferences, sources, and topic navigation.
+- Acknowledge standalone remembered facts before comparison routing, so age statements are stored instead of triggering a premature comparison question.
+- Understand explicit Linux distributions in package questions, natural requests for more detail, and negative requests to stop guided steps.
+- Clarify incomplete calculation requests and correctly explain that square roots of negative values are not real.
+- Use clear preference summaries such as “bullet points,” and refresh the browser assets for this release.
+
 ## 0.8.0 - 2026-11-21
 
 - Remember answer preferences for brief or detailed replies, beginner explanations, bullet or numbered formatting, and one-step Linux guidance.

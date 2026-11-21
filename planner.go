@@ -62,6 +62,9 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 			return response
 		}
 	}
+	if updates > 0 && isStandaloneStatement(lower) {
+		return b.acknowledgeFacts()
+	}
 	if pronoun := unresolvedAgePronoun(lower); pronoun != "" {
 		return Response{
 			Text:   fmt.Sprintf("Who do you mean by %q? Tell me the person's name so I don't attach the age to the wrong person.", pronoun),
@@ -124,9 +127,6 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 			Module: "conversation/capabilities",
 		}
 	}
-	if updates > 0 && isStandaloneStatement(lower) {
-		return b.acknowledgeFacts()
-	}
 	if response, handled := b.answerFollowup(lower); handled {
 		return response
 	}
@@ -159,7 +159,11 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 		}
 		b.memory.lastKnowledgeID = result.Document.ID
 		b.memory.lastKnowledgeTurn = b.memory.turn
-		answer, sources := tailorLinuxPackageAnswer(result.Document, b.memory.linuxDistribution())
+		distro := linuxDistro(lower)
+		if distro == "" {
+			distro = b.memory.linuxDistribution()
+		}
+		answer, sources := tailorLinuxPackageAnswer(result.Document, distro)
 		return Response{
 			Text:    answer,
 			Module:  "retrieval/" + result.Document.ID,
