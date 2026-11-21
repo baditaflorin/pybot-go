@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.2 - 2026-11-21
+
+- Strip common polite overview and “tell me about” phrasing before Wikipedia search so the entity is ranked ahead of the request wrapper.
+
 ## 0.9.1 - 2026-11-21
 
 - Route natural factual questions with varied phrasing, including polite “can you give me…” forms, to cited lookup instead of the unknown fallback.
