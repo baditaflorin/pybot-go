@@ -327,7 +327,9 @@
   }
 
   function isFactualQuestion(text) {
-    return /^(what|who|where|when|why|which|how|define|explain|tell me about)\b/i.test(text.trim());
+    const question = text.trim();
+    if (/^(can|could|would) you (help|assist) me\??$/i.test(question)) return false;
+    return /^(what|who|where|when|why|which|how|define|explain|tell me about|can you (tell|give|name|list|explain|show|describe)|at what)\b/i.test(question) || question.endsWith("?");
   }
 
   async function sendMessage(text) {
@@ -457,7 +459,7 @@
     }
     try {
       const go = new Go();
-      const binary = await fetch("./pybot.wasm?v=0.9.0");
+      const binary = await fetch("./pybot.wasm?v=0.9.1");
       if (!binary.ok) throw new Error("WebAssembly bundle is unavailable.");
       const result = await WebAssembly.instantiate(await binary.arrayBuffer(), go.importObject);
       void go.run(result.instance).catch(() => setReady(false, "Runtime failed to load."));

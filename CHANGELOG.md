@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.1 - 2026-11-21
+
+- Route natural factual questions with varied phrasing, including polite “can you give me…” forms, to cited lookup instead of the unknown fallback.
+
 ## 0.9.0 - 2026-11-21
 
 - Add 100 natural two-turn factual conversations spanning geography, science, history, culture, and everyday knowledge.
