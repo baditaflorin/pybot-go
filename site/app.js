@@ -335,7 +335,7 @@
       const semanticScore = semanticScores?.[index];
       const score = semanticScore == null
         ? searchScore * 0.8 + lexicalScores[index] * 0.2
-        : semanticScore * 0.7 + searchScore * 0.2 + lexicalScores[index] * 0.1;
+        : searchScore * 0.55 + semanticScore * 0.25 + lexicalScores[index] * 0.2;
       return { candidate, score };
     }).sort((a, b) => b.score - a.score)[0].candidate;
     const sourceText = String(page.extract).replace(/\s+/g, " ").trim();
@@ -521,7 +521,7 @@
     }
     try {
       const go = new Go();
-      const binary = await fetch("./pybot.wasm?v=0.10.0");
+      const binary = await fetch("./pybot.wasm?v=0.10.1");
       if (!binary.ok) throw new Error("WebAssembly bundle is unavailable.");
       const result = await WebAssembly.instantiate(await binary.arrayBuffer(), go.importObject);
       void go.run(result.instance).catch(() => setReady(false, "Runtime failed to load."));
