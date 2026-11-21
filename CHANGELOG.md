@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.1 - 2026-11-21
+
+- Keep Wikipedia's relevance rank and lexical evidence ahead of embedding similarity when selecting an article, preventing semantically similar title collisions from winning.
+
 ## 0.10.0 - 2026-11-21
 
 - Rank open-topic Wikipedia results and their lead sentences with the in-browser CPU transformer instead of trusting the first search result.
