@@ -26,6 +26,13 @@ type conversationMemory struct {
 	lastPersonSubject string
 	lastKnowledgeID   string
 	lastKnowledgeTurn int
+	preferences       conversationPreferences
+	preferenceAck     string
+	topics            []conversationTopic
+	guidedSteps       []string
+	guidedIndex       int
+	guidedSources     []Source
+	pendingTopicQuery string
 }
 
 const conversationHistoryLimit = 24
@@ -42,7 +49,18 @@ func newConversationMemory() conversationMemory {
 
 func (m *conversationMemory) remember(text string) int {
 	m.turn++
+	m.preferenceAck = ""
 	updates := 0
+	if change, ok := preferenceStatement(normalizeText(text)); ok {
+		m.preferences.set(change)
+		m.preferenceAck = change.acknowledgement
+		if change.field == "guided" && change.value == "false" {
+			m.guidedSteps = nil
+			m.guidedIndex = 0
+			m.guidedSources = nil
+		}
+		updates++
+	}
 	if match := nameStatementRE.FindStringSubmatch(text); len(match) == 2 {
 		m.setFact(Fact{
 			Subject: "user", Attribute: "name", Value: capitalizeName(match[1]),
@@ -119,16 +137,26 @@ func (m *conversationMemory) completeTurn(user string, response Response) {
 	}
 	m.lastUserText = user
 	m.lastResponse = response
+	if !strings.HasPrefix(response.Module, "linux/") && !strings.HasPrefix(response.Module, "retrieval/linux-") &&
+		!strings.HasPrefix(response.Module, "conversation/") && !strings.HasPrefix(response.Module, "memory/") &&
+		!strings.HasPrefix(response.Module, "retrieval/follow-up/") {
+		m.guidedSteps = nil
+		m.guidedIndex = 0
+		m.guidedSources = nil
+	}
 	if isLinuxQuestion(normalizeText(user)) && !isLinuxEnvironmentReply(normalizeText(user)) && !isLinuxDistributionQuestion(normalizeText(user)) {
 		m.lastLinuxQuestion = user
 	} else if strings.HasPrefix(response.Module, "retrieval/linux-") {
 		if !isLinuxEnvironmentReply(normalizeText(user)) {
 			m.lastLinuxQuestion = user
 		}
-	} else if !strings.HasPrefix(response.Module, "linux/") && response.Module != "memory/environment" && response.Module != "conversation/source" &&
-		response.Module != "conversation/shorten" && response.Module != "conversation/repeat" &&
-		response.Module != "conversation/detail" && response.Module != "conversation/explanation" {
+	} else if !strings.HasPrefix(response.Module, "linux/") && !strings.HasPrefix(response.Module, "memory/") &&
+		!strings.HasPrefix(response.Module, "conversation/") && !strings.HasPrefix(response.Module, "retrieval/follow-up/") {
 		m.lastLinuxQuestion = ""
+	}
+	if m.pendingTopicQuery != "" {
+		m.lastLinuxQuestion = m.pendingTopicQuery
+		m.pendingTopicQuery = ""
 	}
 	if topic := externalTopic(response); topic != "" {
 		m.lastExternalTopic = topic
@@ -144,7 +172,7 @@ func (m *conversationMemory) completeTurn(user string, response Response) {
 		m.lastKnowledgeTurn = m.turn
 	case strings.HasPrefix(response.Module, "retrieval/wikipedia"):
 		m.lastKnowledgeID = ""
-	case strings.HasPrefix(response.Module, "linux/") || strings.HasPrefix(response.Module, "conversation/") || strings.HasPrefix(response.Module, "memory/environment") || strings.HasPrefix(response.Module, "retrieval/follow-up/"):
+	case strings.HasPrefix(response.Module, "linux/") || strings.HasPrefix(response.Module, "conversation/") || strings.HasPrefix(response.Module, "memory/") || strings.HasPrefix(response.Module, "retrieval/follow-up/"):
 		// These turns refine the active topic without replacing it.
 	default:
 		m.lastKnowledgeID = ""
@@ -167,9 +195,18 @@ func (m *conversationMemory) rememberResponse(question string, response Response
 			m.lastExternalTopic = ""
 		}
 	}
+	m.replaceTopicResponse(question, response)
 }
 
 func (m *conversationMemory) forget(subject, attribute string) {
+	if attribute == "preferences" {
+		m.preferences = conversationPreferences{}
+		m.guidedSteps = nil
+		m.guidedIndex = 0
+		m.guidedSources = nil
+		m.preferenceAck = "I've cleared your answer preferences for this conversation."
+		return
+	}
 	delete(m.facts, factKey{subject: subject, attribute: attribute})
 	if attribute == "age" && subject == m.lastPersonSubject {
 		m.lastPersonSubject = ""

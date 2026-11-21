@@ -31,13 +31,27 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	}
 	updates := b.memory.remember(text)
 	defer func() {
+		b.memory.recordTopic(text, b.conversationTopicTitle(response), response)
+		response = b.applyConversationPreferences(text, response)
 		if len(response.Suggestions) == 0 {
 			response.Suggestions = suggestedFollowups(response)
 		}
 		b.memory.completeTurn(text, response)
 	}()
 	lower := normalizeText(text)
+	if b.memory.preferenceAck != "" {
+		return Response{Text: b.memory.preferenceAck, Module: "memory/preferences"}
+	}
+	if response, handled := b.answerPreferenceControl(lower); handled {
+		return response
+	}
 	if response, handled := b.answerExternalFollowup(lower); handled {
+		return response
+	}
+	if response, handled := b.answerTopicControl(lower); handled {
+		return response
+	}
+	if response, handled := b.answerGuidedFollowup(lower); handled {
 		return response
 	}
 	if response, handled := b.answerContextControl(lower); handled {
@@ -106,7 +120,7 @@ func (b *Bot) replyWithSemanticHint(input, hintedIntent string, confidence float
 	}
 	if isCapabilityQuestion(lower) {
 		return Response{
-			Text:   "I can help troubleshoot Linux services, logs, disk usage, networking, permissions, SSH, packages, and Docker with sourced guidance and read-only first checks. I can remember facts you tell me and handle follow-ups about previous answers: repeat or shorten them, explain a command, or show the sources. I can compare ages, rank people, calculate arithmetic and square roots, convert common units, and work out dates. In the browser, the last 24 turns stay in this tab and can be exported; ask what I remember or tell me to forget a saved detail. I can answer a few built-in topics and look up other factual questions with a source link. For example, ask who is older, the square root of 2, or the capital of Romania. The CPU transformer helps match wording to these routes; it doesn't write answers. I don't use a generative LLM or GPU.",
+			Text:   "I can troubleshoot Linux services, logs, storage, networking, permissions, SSH, packages, and Docker with sourced, read-only first checks. I can remember facts, Linux distributions, answer preferences, and recent topics in this chat. Ask me to keep answers brief, explain commands for a beginner, use bullets, or guide you through Linux steps one at a time. Return to an earlier topic, ask what we covered, repeat or explain a step, or ask for a source. I can compare ages, rank people, calculate arithmetic and square roots, convert units, and work out dates. The browser restores up to 24 turns after reload; chat stays in this tab. Factual lookups show a source. The CPU transformer matches wording to deterministic Go routes; it does not write answers. No generative LLM or GPU is used.",
 			Module: "conversation/capabilities",
 		}
 	}
@@ -298,6 +312,9 @@ func isStandaloneStatement(text string) bool {
 }
 
 func (b *Bot) acknowledgeFacts() Response {
+	if b.memory.preferenceAck != "" {
+		return Response{Text: b.memory.preferenceAck, Module: "memory/preferences"}
+	}
 	facts := b.memory.factsInOrder()
 	latest := make([]Fact, 0)
 	for _, fact := range facts {

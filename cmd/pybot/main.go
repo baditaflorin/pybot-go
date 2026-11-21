@@ -24,7 +24,7 @@ const (
 	helpText = `Commands:
   /reset   clear the conversation memory
   /context show remembered facts and the active topic
-  /forget  remove your remembered name, age, or Linux distribution
+	  /forget  remove your remembered name, age, distro, or answer preferences
   /help    show this help
   /exit    quit (Ctrl+D works too)`
 )
@@ -184,9 +184,9 @@ func chat(bot *pybot.Bot, first string, stdin io.Reader, stdout, stderr io.Write
 		}
 		if strings.HasPrefix(command, "/forget ") {
 			attribute := strings.TrimSpace(strings.TrimPrefix(command, "/forget "))
-			question := map[string]string{"name": "forget my name", "age": "forget my age", "distro": "forget my distro", "distribution": "forget my distro"}[attribute]
+			question := map[string]string{"name": "forget my name", "age": "forget my age", "distro": "forget my distro", "distribution": "forget my distro", "preferences": "forget my preferences", "style": "forget my preferences"}[attribute]
 			if question == "" {
-				_, _ = fmt.Fprint(stdout, "Use /forget name, /forget age, or /forget distro.\n\n")
+				_, _ = fmt.Fprint(stdout, "Use /forget name, /forget age, /forget distro, or /forget preferences.\n\n")
 				continue
 			}
 			response := bot.Reply(question)

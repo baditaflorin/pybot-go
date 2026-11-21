@@ -138,7 +138,7 @@ func isLinuxDistributionQuestion(text string) bool {
 }
 
 func isMemoryQuestion(text string) bool {
-	return oneOf(text, "what do you remember", "what do you remember about me", "what did i tell you", "what have i told you", "what is the context", "summarize our conversation", "recap this chat")
+	return oneOf(text, "what do you remember", "what do you remember about me", "what did i tell you", "what have i told you", "what is the context", "summarize our conversation", "recap this chat", "what preferences do you remember", "what answer style are you using", "what style did i ask for")
 }
 
 func requestedForgetAttribute(text string) string {
@@ -149,6 +149,8 @@ func requestedForgetAttribute(text string) string {
 		return "age"
 	case oneOf(text, "forget my linux distribution", "forget my distro", "forget which linux i use"):
 		return "linux_distribution"
+	case oneOf(text, "forget my preferences", "forget my answer preferences", "reset my answer style", "clear my response preferences", "use your default answer style"):
+		return "preferences"
 	default:
 		return ""
 	}
@@ -170,6 +172,16 @@ func (b *Bot) answerConversationSummary() Response {
 			parts = append(parts, "you use "+fact.Value)
 		}
 	}
+	if preferences := b.memory.preferences.summary(); preferences != "" {
+		parts = append(parts, "your answer preferences are "+preferences)
+	}
+	if len(b.memory.topics) > 0 {
+		recent := make([]string, 0, 3)
+		for i := len(b.memory.topics) - 1; i >= 0 && len(recent) < 3; i-- {
+			recent = append(recent, b.memory.topics[i].title)
+		}
+		parts = append(parts, "recent topics include "+strings.Join(recent, ", "))
+	}
 	if len(parts) == 0 {
 		if b.memory.lastExternalTopic != "" {
 			return Response{Text: "We just looked up " + b.memory.lastExternalTopic + ". I don't have any personal facts saved from this chat.", Module: "conversation/summary"}
@@ -188,7 +200,7 @@ func (b *Bot) answerConversationSummary() Response {
 			parts = append(parts, "we have been discussing "+result.Document.Title)
 		}
 	}
-	return Response{Text: "From this chat, I remember " + strings.Join(parts, "; ") + ". You can say “forget my name,” “forget my age,” or “forget my distro” to remove a saved detail.", Module: "conversation/summary"}
+	return Response{Text: "From this chat, I remember " + strings.Join(parts, "; ") + ". You can say “forget my name,” “forget my age,” “forget my distro,” or “forget my preferences” to remove a saved detail.", Module: "conversation/summary"}
 }
 
 func (b *Bot) answerLinuxEnvironmentFollowup(text string) (Response, bool) {
@@ -227,6 +239,9 @@ func (b *Bot) answerExternalFollowup(text string) (Response, bool) {
 	if topic == "" || !isEntityFollowup(text) {
 		return Response{}, false
 	}
+	if response, handled := answerExternalFactFollowup(text, topic, b.memory.lastResponse); handled {
+		return response, true
+	}
 	query := externalFollowupQuery(text, topic)
 	if query == "" {
 		return Response{}, false
@@ -236,6 +251,41 @@ func (b *Bot) answerExternalFollowup(text string) (Response, bool) {
 		Module:      "retrieval/wikipedia-follow-up",
 		LookupQuery: query,
 	}, true
+}
+
+func answerExternalFactFollowup(text, topic string, previous Response) (Response, bool) {
+	wanted := ""
+	switch {
+	case containsAny(text, "population", "how many people", "people live", "residents", "inhabitants"):
+		wanted = "population"
+	case containsAny(text, "river", "which waterway"):
+		wanted = "river"
+	case containsAny(text, "how big", "how large", "what area", "size of it", "how much area"):
+		wanted = "area"
+	case containsAny(text, "where is", "where are", "where was", "where can"):
+		wanted = "location"
+	case containsAny(text, "when was", "when did", "when founded", "when born"):
+		wanted = "history"
+	default:
+		return Response{}, false
+	}
+	markers := map[string][]string{
+		"population": {"population", "residents", "inhabitants"},
+		"river":      {"river", "waterway"},
+		"area":       {"area", "square kilomet", "km2", "sq mi"},
+		"location":   {"located", "lies in", "stands on", "situated", "in south", "in northern", "in eastern", "in western", "in central"},
+		"history":    {"founded", "established", "born", "created in", "first recorded"},
+	}[wanted]
+	for _, sentence := range splitAnswerSteps(previous.Text) {
+		if containsAny(strings.ToLower(sentence), markers...) {
+			return Response{
+				Text:    fmt.Sprintf("From the cited article about %s: %s", topic, strings.TrimSpace(sentence)),
+				Module:  "retrieval/follow-up/" + wanted,
+				Sources: append([]Source(nil), previous.Sources...),
+			}, true
+		}
+	}
+	return Response{}, false
 }
 
 func isRepeatRequest(text string) bool {
@@ -399,7 +449,7 @@ func isEntityFollowup(text string) bool {
 	if len(strings.Fields(text)) > 14 {
 		return false
 	}
-	return containsAny(text, "that", "there", "they", "he", "she", "its", "their", "tell me more", "what about", "more detail", "elaborate") || containsWholeWord(text, "it")
+	return containsAny(text, "that", "there", "they", "he", "she", "its", "their", "tell me more", "what about", "more detail", "elaborate", "population", "how many people", "people live", "river", "area", "how big", "how large", "when was it", "history") || containsWholeWord(text, "it")
 }
 
 func containsWholeWord(text, word string) bool {
@@ -423,7 +473,7 @@ func externalFollowupQuery(text, topic string) string {
 		pronouns := regexp.MustCompile(`\b(it|that|there|they|he|she|its|their)\b`)
 		return pronouns.ReplaceAllString(strings.TrimSpace(text), topic)
 	}
-	if containsAny(text, "how big", "how large", "population") {
+	if containsAny(text, "how big", "how large", "population", "how many people", "people live", "residents", "inhabitants") {
 		return "What is the size or population of " + topic + "?"
 	}
 	if containsAny(text, "when founded", "when was it founded", "when was it created", "when did it start") {
