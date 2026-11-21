@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.3 - 2026-11-21
+
+- Normalize “what is the…” and similar entity question wrappers before Wikipedia search so direct fact questions rank the subject page over incidental phrase matches.
+
 ## 0.9.2 - 2026-11-21
 
 - Strip common polite overview and “tell me about” phrasing before Wikipedia search so the entity is ranked ahead of the request wrapper.
