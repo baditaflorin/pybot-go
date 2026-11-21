@@ -8,21 +8,22 @@ import (
 )
 
 var (
-	mathNumberRE           = regexp.MustCompile(`\d+(?:\.\d+)?`)
-	mathWordRE             = regexp.MustCompile(`(?i)\b(plus|add|added to|sum of|minus|subtract|subtracted from|times|multiplied by|multiply by|divided by|divide by|over|and)\b`)
-	differenceBetweenRE    = regexp.MustCompile(`(?i)\bdifference between\s+(\d+(?:\.\d+)?)\s+and\s+(\d+(?:\.\d+)?)\b`)
-	mathOperatorRE         = regexp.MustCompile(`(?i)\b(plus|added to|minus|subtracted from|times|multiplied by|multiply by|divided by|divide by|over)\b`)
-	mathCommandRE          = regexp.MustCompile(`(?i)\b(calculate|compute|evaluate|solve|sum of|difference between|add|subtract|multiply|divide|how much is)\b`)
-	mathRootRE             = regexp.MustCompile(`(?i)\b(?:square root|sqrt)\b|√`)
-	squareRootPhraseRE     = regexp.MustCompile(`(?i)\b(?:the\s+)?square root of\s+(\d+(?:\.\d+)?)`)
-	sqrtSpacedRE           = regexp.MustCompile(`(?i)\bsqrt\s+(\d+(?:\.\d+)?)`)
-	squareRootSymbolRE     = regexp.MustCompile(`√\s*(\d+(?:\.\d+)?)`)
-	subtractFromRE         = regexp.MustCompile(`(?i)\b(?:subtract\s+(\d+(?:\.\d+)?)\s+from\s+(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s+subtracted from\s+(\d+(?:\.\d+)?))\b`)
-	divideByRE             = regexp.MustCompile(`(?i)\bdivide\s+(\d+(?:\.\d+)?)\s+by\s+(\d+(?:\.\d+)?)\b`)
-	multiplyByRE           = regexp.MustCompile(`(?i)\bmultiply\s+(\d+(?:\.\d+)?)\s+by\s+(\d+(?:\.\d+)?)\b`)
-	rawMathExprRE          = regexp.MustCompile(`\d\s*[+*/-]\s*\d`)
-	errMalformedExpression = errors.New("malformed arithmetic expression")
-	errDivisionByZero      = errors.New("division by zero")
+	mathNumberRE            = regexp.MustCompile(`\d+(?:\.\d+)?`)
+	mathWordRE              = regexp.MustCompile(`(?i)\b(plus|add|added to|sum of|minus|subtract|subtracted from|times|multiplied by|multiply by|divided by|divide by|over|and)\b`)
+	differenceBetweenRE     = regexp.MustCompile(`(?i)\bdifference between\s+(\d+(?:\.\d+)?)\s+and\s+(\d+(?:\.\d+)?)\b`)
+	mathOperatorRE          = regexp.MustCompile(`(?i)\b(plus|added to|minus|subtracted from|times|multiplied by|multiply by|divided by|divide by|over)\b`)
+	mathCommandRE           = regexp.MustCompile(`(?i)\b(calculate|compute|evaluate|solve|sum of|difference between|add|subtract|multiply|divide|how much is)\b`)
+	mathIncompleteRequestRE = regexp.MustCompile(`(?i)\b(?:calculate|compute|evaluate|solve)\s+(?:this|that|it|something|the result|the answer)\b`)
+	mathRootRE              = regexp.MustCompile(`(?i)\b(?:square root|sqrt)\b|√`)
+	squareRootPhraseRE      = regexp.MustCompile(`(?i)\b(?:the\s+)?square root of\s+(-?\d+(?:\.\d+)?)`)
+	sqrtSpacedRE            = regexp.MustCompile(`(?i)\bsqrt\s+(-?\d+(?:\.\d+)?)`)
+	squareRootSymbolRE      = regexp.MustCompile(`√\s*(-?\d+(?:\.\d+)?)`)
+	subtractFromRE          = regexp.MustCompile(`(?i)\b(?:subtract\s+(\d+(?:\.\d+)?)\s+from\s+(\d+(?:\.\d+)?)|(\d+(?:\.\d+)?)\s+subtracted from\s+(\d+(?:\.\d+)?))\b`)
+	divideByRE              = regexp.MustCompile(`(?i)\bdivide\s+(\d+(?:\.\d+)?)\s+by\s+(\d+(?:\.\d+)?)\b`)
+	multiplyByRE            = regexp.MustCompile(`(?i)\bmultiply\s+(\d+(?:\.\d+)?)\s+by\s+(\d+(?:\.\d+)?)\b`)
+	rawMathExprRE           = regexp.MustCompile(`\d\s*[+*/-]\s*\d`)
+	errMalformedExpression  = errors.New("malformed arithmetic expression")
+	errDivisionByZero       = errors.New("division by zero")
 )
 
 var numberWords = map[string]string{
@@ -42,8 +43,12 @@ func solveArithmetic(text string) (Response, bool) {
 	commandOperator := mathCommandRE.MatchString(text) && numberCount >= 2
 	rawOperator := rawMathExprRE.MatchString(numberNormalized)
 	rootOperator := mathRootRE.MatchString(text) && numberCount >= 1
-	if !wordOperator && !commandOperator && !rawOperator && !rootOperator {
+	incompleteRequest := mathIncompleteRequestRE.MatchString(text)
+	if !wordOperator && !commandOperator && !rawOperator && !rootOperator && !incompleteRequest {
 		return Response{}, false
+	}
+	if incompleteRequest && !wordOperator && !rawOperator && !rootOperator {
+		return Response{Text: "Give me an arithmetic expression, such as 12 plus 50.", Module: "reasoning/arithmetic", NeedsClarification: true}, true
 	}
 	normalized := normalizeMathOperators(numberNormalized)
 
@@ -60,7 +65,11 @@ func solveArithmetic(text string) (Response, bool) {
 		probe--
 	}
 	rootStart := strings.LastIndex(strings.ToLower(normalized[:start[0]]), "sqrt(")
-	if rootStart >= 0 && strings.TrimSpace(normalized[rootStart+len("sqrt("):start[0]]) == "" {
+	rootArgumentPrefix := ""
+	if rootStart >= 0 {
+		rootArgumentPrefix = strings.TrimSpace(normalized[rootStart+len("sqrt(") : start[0]])
+	}
+	if rootStart >= 0 && (rootArgumentPrefix == "" || rootArgumentPrefix == "-") {
 		startAt = rootStart
 	} else if probe >= 0 && normalized[probe] == '(' {
 		startAt = probe

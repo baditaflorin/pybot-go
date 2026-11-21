@@ -31,13 +31,13 @@ const conversationTopicLimit = 8
 
 func preferenceStatement(text string) (preferenceChange, bool) {
 	switch {
-	case containsAny(text, "stop step by step", "stop one step at a time", "no more step by step", "turn off guided steps", "stop guiding me"):
+	case containsAny(text, "don't need one step at a time", "do not need one step at a time", "don't want one step at a time", "do not want one step at a time", "don't need step by step", "do not need step by step", "don't want step by step", "do not want step by step", "no step by step", "all steps at once", "stop step by step", "stop one step at a time", "no more step by step", "turn off guided steps", "stop guiding me"):
 		return preferenceChange{"guided", "false", "Okay. I'll give you the complete answer again, with the usual safety notes."}, true
 	case containsAny(text, "one step at a time", "step by step", "guide me through", "walk me through one step", "guided steps"):
 		return preferenceChange{"guided", "true", "Understood. I'll give Linux guidance one step at a time and wait for you before continuing."}, true
 	case containsAny(text, "keep it brief", "keep answers short", "short answers", "be concise", "answer concisely", "in one sentence", "keep it short", "less detail"):
 		return preferenceChange{"verbosity", "brief", "Understood. I'll keep answers brief for this conversation."}, true
-	case containsAny(text, "give more detail by default", "detailed answers", "be more detailed", "explain in detail by default", "full explanations"):
+	case containsAny(text, "give me more detail", "give more detail by default", "more detailed answers", "detailed answers", "be more detailed", "explain in detail by default", "full explanations"):
 		return preferenceChange{"verbosity", "detailed", "Understood. I'll include more explanation when the available guidance supports it."}, true
 	case containsAny(text, "i'm a beginner", "i am a beginner", "i'm new to linux", "i am new to linux", "explain like i'm new", "beginner friendly", "i'm learning linux", "i am learning linux"):
 		return preferenceChange{"audience", "beginner", "Got it. I'll explain Linux terms and commands in beginner-friendly language."}, true
@@ -74,7 +74,11 @@ func (p conversationPreferences) summary() string {
 		parts = append(parts, p.audience+"-friendly explanations")
 	}
 	if p.format != "" {
-		parts = append(parts, p.format+" formatting")
+		if p.format == "bullets" {
+			parts = append(parts, "bullet points")
+		} else {
+			parts = append(parts, "numbered lists")
+		}
 	}
 	if p.guided {
 		parts = append(parts, "Linux guidance one step at a time")
