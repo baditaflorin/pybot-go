@@ -9,6 +9,7 @@ import (
 var linuxDistroRE = regexp.MustCompile(`(?i)\b(ubuntu|debian|fedora|rhel|red\s+hat|rocky(?:\s+linux)?|alma(?:linux)?|arch(?:\s+linux)?|opensuse|suse|alpine|linux\s+mint|mint|pop!?_?os|manjaro|gentoo|nixos)(?:\s+(\d+(?:\.\d+)*))?\b`)
 var commandInAnswerRE = regexp.MustCompile("`([^`]+)`")
 var trailingDistroPrepositionRE = regexp.MustCompile(`(?i)\b(on|for|using)\s*$`)
+var externalSingularPronounRE = regexp.MustCompile(`\b(it|that|there|he|she|its)\b`)
 
 func suggestedFollowups(response Response) []string {
 	switch {
@@ -460,7 +461,7 @@ func externalFollowupQuery(text, topic, previousQuestion string) string {
 	if containsAny(text, "what is it", "what is that", "who is it", "who is that") {
 		return "What is " + topic + "?"
 	}
-	if containsAny(text, "what is its capital", "what is the capital there", "what is their capital") {
+	if containsAny(text, "its capital", "their capital", "capital there") {
 		return "What is the capital of " + topic + "?"
 	}
 	if containsAny(text, "how does it work", "how does that work", "how does it function") {
@@ -481,6 +482,9 @@ func externalFollowupQuery(text, topic, previousQuestion string) string {
 	}
 	if containsAny(text, "tell me more", "more about", "more detail", "elaborate", "what about") {
 		return "Tell me more about " + topic
+	}
+	if expanded := externalSingularPronounRE.ReplaceAllString(strings.TrimSpace(text), topic); expanded != strings.TrimSpace(text) {
+		return expanded
 	}
 	// Preserve the user's actual follow-up and attach both known context clues.
 	// This lets the factual search resolve questions such as "Which of those

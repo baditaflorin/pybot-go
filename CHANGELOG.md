@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.3 - 2026-11-21
+
+- Resolve singular pronouns in open-topic follow-ups into the remembered article topic.
+- Separate the search query from the relevance question so rewritten searches can still rank sentences against what the user meant.
+- Rewrite country-border questions as subject-first neighboring-country searches to favor an article that lists the answer.
+
 ## 0.10.2 - 2026-11-21
 
 - Let Wikipedia's own relevance ranking drive article selection, with CPU embeddings as a supporting semantic score and a smaller exact-keyword contribution.
