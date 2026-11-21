@@ -89,7 +89,7 @@
 
   async function getFactualConversations() {
     if (!factualConversationsPromise) {
-      factualConversationsPromise = fetch("./factual-conversations.json?v=0.9.2")
+      factualConversationsPromise = fetch("./factual-conversations.json?v=0.9.3")
         .then((response) => {
           if (!response.ok) throw new Error("Factual conversation examples are unavailable.");
           return response.json();

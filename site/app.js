@@ -338,6 +338,7 @@
       /^(?:can|could|would) you (?:please )?(?:give me|tell me|show me)\s+(?:(?:a|an|the)\s+)?(?:(?:quick|brief|short)\s+)?(?:overview|summary|description|introduction)\s+(?:of|about)\s+/i,
       /^(?:can|could|would) you (?:please )?tell me about\s+/i,
       /^(?:please\s+)?tell me about\s+/i,
+      /^(?:what(?: is|'s|’s)|who(?: is|'s|’s)|where(?: is|'s|’s))\s+(?:(?:the|a|an)\s+)?/i,
     ];
     for (const wrapper of wrappers) {
       if (wrapper.test(question)) return question.replace(wrapper, "").replace(/[?.!]+\s*$/, "").trim();
@@ -472,7 +473,7 @@
     }
     try {
       const go = new Go();
-      const binary = await fetch("./pybot.wasm?v=0.9.2");
+      const binary = await fetch("./pybot.wasm?v=0.9.3");
       if (!binary.ok) throw new Error("WebAssembly bundle is unavailable.");
       const result = await WebAssembly.instantiate(await binary.arrayBuffer(), go.importObject);
       void go.run(result.instance).catch(() => setReady(false, "Runtime failed to load."));
