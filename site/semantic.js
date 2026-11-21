@@ -43,7 +43,10 @@
       "What references support that answer?", "Make your last response shorter.",
       "Explain that step to me.", "Why did you recommend those commands?",
       "Is that command safe to run?", "Walk me through the previous answer.",
-      "Continue with the next steps.",
+      "Continue with the next steps.", "Repeat the current step.",
+      "What does step two mean?", "I ran that command and it failed.",
+      "What topics have we covered?", "Go back to the disk space question.",
+      "How many people live there?", "Where exactly is it located?",
     ],
   };
 
@@ -108,7 +111,7 @@
 
   function shouldUseContext(text) {
     const words = text.trim().split(/\s+/).length;
-    return words <= 10 && /\b(it|they|them|he|she|him|her|that|those|these|there|same|again|previous|more|why|source|command|step|safe|next|what about|and if|where does)\b/i.test(text);
+    return words <= 12 && /\b(it|they|them|he|she|him|her|that|those|these|there|same|again|previous|more|why|source|command|step|safe|next|what about|and if|where does|back to|return to|topics|live there|second|third)\b/i.test(text);
   }
 
   function cosine(vector, prototype) {

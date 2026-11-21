@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0 - 2026-11-21
+
+- Remember answer preferences for brief or detailed replies, beginner explanations, bullet or numbered formatting, and one-step Linux guidance.
+- Keep a bounded recent-topic list so users can recap it or return to an earlier answer by topic words.
+- Add stepwise Linux help with repeat, explain, skip, next, show remaining steps, and output-based recovery turns.
+- Answer location, population, area, river, and history follow-ups from the latest cited article when it contains the requested fact.
+- Expand CPU embedding examples for topic navigation and guided follow-up language; rebuild the browser bundle.
+
 ## 0.7.1 - 2026-11-20
 
 - Normalize smart apostrophes and recognize natural statements like “I’m using Ubuntu 24.04” as environment memory.
