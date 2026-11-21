@@ -242,7 +242,7 @@ func (b *Bot) answerExternalFollowup(text string) (Response, bool) {
 	if response, handled := answerExternalFactFollowup(text, topic, b.memory.lastResponse); handled {
 		return response, true
 	}
-	query := externalFollowupQuery(text, topic)
+	query := externalFollowupQuery(text, topic, b.memory.lastExternalQuestion)
 	if query == "" {
 		return Response{}, false
 	}
@@ -456,15 +456,12 @@ func containsWholeWord(text, word string) bool {
 	return regexp.MustCompile(`\b` + regexp.QuoteMeta(word) + `\b`).MatchString(text)
 }
 
-func externalFollowupQuery(text, topic string) string {
+func externalFollowupQuery(text, topic, previousQuestion string) string {
 	if containsAny(text, "what is it", "what is that", "who is it", "who is that") {
 		return "What is " + topic + "?"
 	}
 	if containsAny(text, "what is its capital", "what is the capital there", "what is their capital") {
 		return "What is the capital of " + topic + "?"
-	}
-	if containsAny(text, "where") {
-		return "Where is " + topic + " located?"
 	}
 	if containsAny(text, "how does it work", "how does that work", "how does it function") {
 		return "How does " + topic + " work?"
@@ -479,14 +476,19 @@ func externalFollowupQuery(text, topic string) string {
 	if containsAny(text, "when founded", "when was it founded", "when was it created", "when did it start") {
 		return "When was " + topic + " founded or created?"
 	}
-	if containsAny(text, "who", "they", "he", "she") {
-		return "Who is " + topic + "?"
-	}
 	if containsAny(text, "history", "what about its history") {
 		return "What is the history of " + topic + "?"
 	}
 	if containsAny(text, "tell me more", "more about", "more detail", "elaborate", "what about") {
 		return "Tell me more about " + topic
 	}
-	return ""
+	// Preserve the user's actual follow-up and attach both known context clues.
+	// This lets the factual search resolve questions such as "Which of those
+	// four is largest?" without turning every question into a generic "Who is
+	// <topic>?" or "Where is <topic>?" lookup.
+	query := strings.TrimSpace(text + " " + topic)
+	if previousQuestion != "" && containsAny(text, "those", "these", "them", "they") {
+		query += " " + previousQuestion
+	}
+	return query
 }

@@ -145,6 +145,30 @@ func TestUnknownQuestionAbstains(t *testing.T) {
 	}
 }
 
+func TestExternalEntityFollowupKeepsQuestionAndConversationContext(t *testing.T) {
+	bot := New(1)
+	question := "What are Japan's four main islands?"
+	bot.Reply(question)
+	bot.RememberResponse(question, Response{
+		Text:   "Japan is an island country in East Asia.",
+		Module: "retrieval/wikipedia",
+		Sources: []Source{{
+			Title: "Wikipedia · Japan",
+			URL:   "https://en.wikipedia.org/wiki/Japan",
+		}},
+	})
+
+	followup := bot.Reply("Which of those four is the largest?")
+	if followup.Module != "retrieval/wikipedia-follow-up" {
+		t.Fatalf("module = %q, want retrieval/wikipedia-follow-up; answer: %s", followup.Module, followup.Text)
+	}
+	for _, want := range []string{"Which of those four is the largest?", "Japan", question} {
+		if !strings.Contains(strings.ToLower(followup.LookupQuery), strings.ToLower(want)) {
+			t.Errorf("lookup query %q does not preserve %q", followup.LookupQuery, want)
+		}
+	}
+}
+
 func TestCapabilityQuestionDescribesUsefulBoundaries(t *testing.T) {
 	for _, question := range []string{"What can you do?", "What you can do?", "What can you do on Linux?"} {
 		response := New(1).Reply(question)
