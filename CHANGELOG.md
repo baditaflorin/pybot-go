@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.2 - 2026-11-21
+
+- Let Wikipedia's own relevance ranking drive article selection, with CPU embeddings as a supporting semantic score and a smaller exact-keyword contribution.
+
 ## 0.10.1 - 2026-11-21
 
 - Keep Wikipedia's relevance rank and lexical evidence ahead of embedding similarity when selecting an article, preventing semantically similar title collisions from winning.
