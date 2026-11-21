@@ -18,6 +18,8 @@
       "What is Romania?", "Tell me about Romania.", "Who was Marie Curie?",
       "Where are the Carpathian Mountains?", "Explain what photosynthesis means.",
       "Give me a factual answer about a place, person, or concept.",
+      "Is Bucharest the capital of Romania?", "Does the Danube flow through Romania?",
+      "Is Romania in Europe?", "Is Mount Everest taller than Kilimanjaro?",
     ],
     linux_expert: [
       "How do I troubleshoot a Linux server?", "How can I check disk space on Ubuntu?",
@@ -47,6 +49,47 @@
       "What does step two mean?", "I ran that command and it failed.",
       "What topics have we covered?", "Go back to the disk space question.",
       "How many people live there?", "Where exactly is it located?",
+      "What comes in that package?",
+    ],
+    dialogue_statement: [
+      "I got a new job after all.", "We've reduced our factory's energy use by 15 percent.",
+      "I found a few pairs of pants.", "Our company is downsizing.",
+      "I plan to use more wind power next year.", "I have a meeting tomorrow.",
+      "This is complicated, and there is another reason.",
+    ],
+    dialogue_positive_emotion: [
+      "That's excellent news.", "I feel lucky and excited about the new job.",
+      "I'm really pleased with how it went.", "That's a wonderful idea.",
+      "I'm looking forward to the opportunity.", "What a nice day.",
+    ],
+    dialogue_negative_emotion: [
+      "I feel very down today.", "I'm worried about what might happen.",
+      "It's hard to forget her, and I'm having a difficult time.",
+      "I'm frustrated because I don't know what to do.", "I'm sorry this happened.",
+    ],
+    dialogue_acknowledgment: [
+      "I understand.", "I see.", "Same here.", "Of course.", "Sure, that makes sense.",
+      "Okay, I understand what you mean.", "I did learn that.",
+    ],
+    dialogue_offer: [
+      "I can help you with that if you want.", "Would you like me to explain it?",
+      "If a suitable role comes up, I can pass along the details.",
+      "Would it help if I shared the source I used?", "Can I help you?",
+    ],
+    dialogue_request: [
+      "Could you spare a few minutes?", "I would like to view the apartment today.",
+      "Please give me some advice.", "Could you hand me a glass of water?",
+      "Tell me what you need.", "Help me figure out what to do next.",
+    ],
+    social_question: [
+      "Do you see yourself as someone who leads or follows?", "Do you prefer formal or casual footwear?",
+      "Would you be willing to travel for work?", "What is one area you would like to improve?",
+      "Do you feel people understand what you say?", "Have you watched that film?",
+      "Would you like a piece of cake?", "Can you tell that I am thrilled?",
+      "How much longer do you intend to remain in Chicago?", "Why are you behaving unusually?",
+      "Why did you ask me to stop?", "Would Friday work for your schedule?",
+      "Which courses would you prefer to take?", "Would it take long to drive to the museum?",
+      "What's up?", "Why are you mailing a present to your colleague?",
     ],
   };
 
@@ -89,7 +132,7 @@
 
   async function getFactualConversations() {
     if (!factualConversationsPromise) {
-      factualConversationsPromise = fetch("./factual-conversations.json?v=0.10.4")
+      factualConversationsPromise = fetch("./factual-conversations.json?v=0.10.5")
         .then((response) => {
           if (!response.ok) throw new Error("Factual conversation examples are unavailable.");
           return response.json();
@@ -147,7 +190,9 @@
   }
 
   function isQuestion(text) {
-    return /^(what|who|where|when|why|which|how|define|explain|tell me about)\b/i.test(text.trim());
+    const question = text.trim();
+    return /^(what|who|where|when|why|which|how|define|explain|tell me about)\b/i.test(question) ||
+      /^(is|are|do|does|did|can|could|would|will|should|have|has|had)\b.*\?$/i.test(question);
   }
 
   function shouldUseContext(text) {

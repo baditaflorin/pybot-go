@@ -312,7 +312,7 @@
     const data = await response.json();
     const pages = (data.query?.pages || []).filter((page) => page.extract && page.title)
       .sort((a, b) => a.index - b.index);
-    if (pages.length === 0) throw new Error("No sourced answer found");
+    if (pages.length === 0) throw new Error("NO_RELEVANT_RESULT");
 
     const tokens = question.toLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
     const stopWords = new Set(["what", "who", "where", "when", "why", "which", "how", "is", "are", "was", "were", "do", "does", "did", "can", "could", "would", "the", "a", "an", "of", "in", "on", "to", "for", "and", "or", "me", "my", "you", "your", "about", "please"]);
@@ -336,14 +336,19 @@
     const minRank = Math.min(...rankedPages.map((item) => item.rank));
     const maxRank = Math.max(...rankedPages.map((item) => item.rank));
     const rankRange = Math.max(1, maxRank - minRank);
-    const page = rankedPages.map(({ candidate, rank, index }) => {
+    const rankedCandidates = rankedPages.map(({ candidate, rank, index }) => {
       const searchScore = 1 - (rank - minRank) / rankRange;
       const semanticScore = semanticScores?.[index];
       const score = semanticScore == null
         ? searchScore * 0.95 + lexicalScores[index] * 0.05
         : searchScore * 0.65 + semanticScore * 0.25 + lexicalScores[index] * 0.1;
-      return { candidate, score };
-    }).sort((a, b) => b.score - a.score)[0].candidate;
+      return { candidate, score, index, semanticScore };
+    }).sort((a, b) => b.score - a.score);
+    const best = rankedCandidates[0];
+    if (!window.pybotDialogueRouting?.hasRelevantSource(lexicalScores[best.index], best.semanticScore)) {
+      throw new Error("NO_RELEVANT_RESULT");
+    }
+    const page = best.candidate;
     const sourceText = String(page.extract).replace(/\s+/g, " ").trim();
     const sentences = splitExtractSentences(sourceText);
     let answerSentences = sentences.slice(0, 3);
@@ -377,12 +382,6 @@
     return text.split(/(?<=[.!?])\s+(?=[A-Z0-9])/).map((sentence) => sentence.trim()).filter(Boolean);
   }
 
-  function isFactualQuestion(text) {
-    const question = text.trim();
-    if (/^(can|could|would) you (help|assist) me\??$/i.test(question)) return false;
-    return /^(what|who|where|when|why|which|how|define|explain|tell me about|can you (tell|give|name|list|explain|show|describe)|at what)\b/i.test(question) || question.endsWith("?");
-  }
-
   function normalizeFactualLookupQuery(text) {
     const question = normalizeFactualQuestion(text);
     const borderQuestions = [
@@ -398,19 +397,7 @@
   }
 
   function normalizeFactualQuestion(text) {
-    const question = text.trim();
-    const wrappers = [
-      /^(?:can|could|would) you (?:please )?(?:give me|tell me|show me)\s+(?:(?:a|an|the)\s+)?(?:(?:quick|brief|short)\s+)?(?:overview|summary|description|introduction)\s+(?:of|about)\s+/i,
-      /^(?:can|could|would) you (?:please )?tell me about\s+/i,
-      /^(?:please\s+)?tell me about\s+/i,
-      /^(?:can|could|would) you (?:please )?(?:explain|describe|define|summarize)\s+/i,
-      /^(?:please\s+)?(?:explain|describe|define|summarize)\s+/i,
-      /^(?:what(?: is|'s|’s)|who(?: is|'s|’s)|where(?: is|'s|’s))\s+(?:(?:the|a|an)\s+)?/i,
-    ];
-    for (const wrapper of wrappers) {
-      if (wrapper.test(question)) return question.replace(wrapper, "").replace(/[?.!]+\s*$/, "").trim();
-    }
-    return question;
+    return window.pybotDialogueRouting?.normalizeFactualQuestion(text) || text.trim();
   }
 
   async function sendMessage(text) {
@@ -434,16 +421,22 @@
         ? await window.pybotSemanticClassify(value, context)
         : { intent: "", score: 0 };
       let response = JSON.parse(window.pybotReply(value, semantic.intent || "", semantic.score || 0));
-      const lookupText = response.lookup_query || (response.module === "conversation/unknown" && isFactualQuestion(value) ? value : "");
+      const shouldLookup = typeof window.pybotDialogueRouting?.shouldLookupFactualQuestion === "function" &&
+        window.pybotDialogueRouting.shouldLookupFactualQuestion(value, semantic.intent || "");
+      const lookupEligible = response.module === "conversation/unknown" || response.module === "conversation/request" ||
+        response.module === "conversation/question-clarify";
+      const lookupText = response.lookup_query || (lookupEligible && shouldLookup ? value : "");
       const relevanceQuestion = lookupText ? normalizeFactualQuestion(lookupText) : "";
       const lookupQuery = lookupText ? normalizeFactualLookupQuery(lookupText) : "";
       if (lookupQuery) {
         setThinking(true, "Looking up a cited answer…");
         try {
           response = await lookupWikipedia(lookupQuery, relevanceQuestion || lookupQuery);
-        } catch {
+        } catch (error) {
           response = {
-            text: "I couldn't reach Wikipedia just now, so I don't have a cited answer for that question. You can retry the lookup.",
+            text: error?.message === "NO_RELEVANT_RESULT"
+              ? "I couldn't find a source that clearly answers that question. Try rephrasing it with the subject or detail you mean."
+              : "I couldn't reach Wikipedia just now, so I don't have a cited answer for that question. You can retry the lookup.",
             module: "retrieval/wikipedia-error",
             retry_query: relevanceQuestion || lookupQuery,
           };
@@ -542,7 +535,7 @@
     }
     try {
       const go = new Go();
-      const binary = await fetch("./pybot.wasm?v=0.10.4");
+      const binary = await fetch("./pybot.wasm?v=0.10.5");
       if (!binary.ok) throw new Error("WebAssembly bundle is unavailable.");
       const result = await WebAssembly.instantiate(await binary.arrayBuffer(), go.importObject);
       void go.run(result.instance).catch(() => setReady(false, "Runtime failed to load."));

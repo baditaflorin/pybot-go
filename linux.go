@@ -34,7 +34,14 @@ func isLinuxQuestion(text string) bool {
 			return true
 		}
 	}
-	return hasCommandToken(lower, "ls", "tar", "cp", "mv", "du", "df", "top", "ps", "find", "kill", "sync", "crontab", "dmesg", "nproc", "lscpu", "lsblk", "findmnt", "mount", "getent", "ss", "nft", "ufw", "lsof", "stat", "umask", "chown", "chmod", "uname", "sftp", "screen", "timedatectl", "journalctl", "systemctl")
+	// `find` is common prose as well as a command (for example, “find an
+	// apartment”). Require an explicit Linux cue or command-like syntax before
+	// treating it as a domain signal; otherwise ordinary questions get routed
+	// into Linux retrieval.
+	if hasCommandToken(lower, "find") && containsAny(lower, "find .", "find /", "find ~", "find files", "find a file", "find the file", "find large files", "find directories") {
+		return true
+	}
+	return hasCommandToken(lower, "ls", "tar", "cp", "mv", "du", "df", "top", "ps", "kill", "sync", "crontab", "dmesg", "nproc", "lscpu", "lsblk", "findmnt", "mount", "getent", "ss", "nft", "ufw", "lsof", "stat", "umask", "chown", "chmod", "uname", "sftp", "screen", "timedatectl", "journalctl", "systemctl")
 }
 
 func linuxCandidateDocumentIDs(query string) map[string]struct{} {

@@ -36,7 +36,7 @@ func TestEggAnswerUsesFoodSafetyEvidence(t *testing.T) {
 
 func TestUnknownDoesNotRetrieveUnrelatedDocument(t *testing.T) {
 	response := New(0).Reply("What is the population of Mars?")
-	if response.Module != "conversation/unknown" || len(response.Sources) > 0 {
+	if response.Module != "conversation/question-clarify" || len(response.Sources) > 0 {
 		t.Fatalf("unexpected response: %#v", response)
 	}
 }

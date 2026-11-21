@@ -4,6 +4,11 @@ when:
     - pull_request
 
 steps:
+  site-routing:
+    image: node:24-alpine
+    commands:
+      - node --test site/dialogue-routing.test.js
+
   validate:
     image: golang:1.22
     commands:

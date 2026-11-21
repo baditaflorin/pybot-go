@@ -137,8 +137,8 @@ func TestNameMemoryAndQuestion(t *testing.T) {
 func TestUnknownQuestionAbstains(t *testing.T) {
 	bot := New(1)
 	response := bot.Reply("What is the population of Mars?")
-	if response.Module != "conversation/unknown" {
-		t.Fatalf("module = %q, want unknown", response.Module)
+	if response.Module != "conversation/question-clarify" {
+		t.Fatalf("module = %q, want a useful factual-question clarification", response.Module)
 	}
 	if len(response.Sources) != 0 {
 		t.Fatalf("unknown answer unexpectedly cites sources: %#v", response.Sources)

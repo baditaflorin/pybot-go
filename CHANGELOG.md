@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.10.5 - 2026-11-21
+
+- Add CPU embedding examples and deterministic response policies for statements, emotions, acknowledgments, offers, requests, and personal questions.
+- Replace question-mark-based Wikipedia lookup with a conservative factual-question gate; keep yes/no factual queries eligible when MiniLM identifies them as knowledge questions.
+- Abstain when the selected Wikipedia result has neither adequate keyword overlap nor semantic relevance.
+- Distinguish polite requests for explanations from social questions, answer common apartment-search advice directly, and request key context for location- or job-dependent questions.
+- Keep idiomatic personal questions and unspecified product/package questions in dialogue, and avoid treating ordinary uses of “find” as Linux command requests.
+- Add a few source-backed answers for common planetary, time-zone, and university-role questions surfaced by the conversation audit.
+- Prevent a weak dialogue-act hint from swallowing an information-seeking question.
+- Add browser-routing unit tests to Woodpecker CI and update static asset cache versions.
+
 ## 0.10.4 - 2026-11-21
 
 - Match entity-reference pronouns as whole words so phrases such as “the square root” do not become false follow-ups.
