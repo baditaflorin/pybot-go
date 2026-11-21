@@ -169,6 +169,40 @@ func TestExternalEntityFollowupKeepsQuestionAndConversationContext(t *testing.T)
 	}
 }
 
+func TestExternalEntityFollowupResolvesSingularPronoun(t *testing.T) {
+	bot := New(1)
+	question := "What is Romania?"
+	bot.Reply(question)
+	bot.RememberResponse(question, Response{
+		Text:   "Romania is a country in Central and Southeastern Europe.",
+		Module: "retrieval/wikipedia",
+		Sources: []Source{{
+			Title: "Wikipedia · Romania",
+			URL:   "https://en.wikipedia.org/wiki/Romania",
+		}},
+	})
+
+	followup := bot.Reply("Which countries border it?")
+	if followup.Module != "retrieval/wikipedia-follow-up" {
+		t.Fatalf("module = %q, want retrieval/wikipedia-follow-up", followup.Module)
+	}
+	if got, want := followup.LookupQuery, "which countries border Romania?"; got != want {
+		t.Fatalf("lookup query = %q, want %q", got, want)
+	}
+	bot.RememberResponse("Which countries border it?", Response{
+		Text:   "It borders Ukraine, Hungary, Serbia, Bulgaria, and Moldova.",
+		Module: "retrieval/wikipedia",
+		Sources: []Source{{
+			Title: "Wikipedia · Romania",
+			URL:   "https://en.wikipedia.org/wiki/Romania",
+		}},
+	})
+	capital := bot.Reply("And its capital?")
+	if got, want := capital.LookupQuery, "What is the capital of Romania?"; got != want {
+		t.Fatalf("capital follow-up query = %q, want %q", got, want)
+	}
+}
+
 func TestCapabilityQuestionDescribesUsefulBoundaries(t *testing.T) {
 	for _, question := range []string{"What can you do?", "What you can do?", "What can you do on Linux?"} {
 		response := New(1).Reply(question)

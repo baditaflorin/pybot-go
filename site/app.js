@@ -289,7 +289,7 @@
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  async function lookupWikipedia(question) {
+  async function lookupWikipedia(question, relevanceQuestion = question) {
     const params = new URLSearchParams({
       action: "query",
       generator: "search",
@@ -326,7 +326,7 @@
     });
     let semanticScores = null;
     if (typeof window.pybotSemanticRankCandidates === "function") {
-      semanticScores = await window.pybotSemanticRankCandidates(question, pages.map((page) => `${page.title}. ${page.extract}`));
+      semanticScores = await window.pybotSemanticRankCandidates(relevanceQuestion, pages.map((page) => `${page.title}. ${page.extract}`));
     }
     const rankedPages = pages.map((candidate, index) => ({
       candidate,
@@ -348,7 +348,7 @@
     const sentences = splitExtractSentences(sourceText);
     let answerSentences = sentences.slice(0, 3);
     if (sentences.length > 1 && typeof window.pybotSemanticRankCandidates === "function") {
-      const sentenceScores = await window.pybotSemanticRankCandidates(question, sentences);
+      const sentenceScores = await window.pybotSemanticRankCandidates(relevanceQuestion, sentences);
       if (sentenceScores) {
         answerSentences = sentenceScores.map((score, index) => ({ score, index }))
           .sort((a, b) => b.score - a.score)
@@ -384,6 +384,20 @@
   }
 
   function normalizeFactualLookupQuery(text) {
+    const question = normalizeFactualQuestion(text);
+    const borderQuestions = [
+      /^(?:which|what) countries border\s+(.+?)[?.!]*$/i,
+      /^(?:which|what) countries does\s+(.+?)\s+border[?.!]*$/i,
+      /^(?:which|what) countries are (?:adjacent|next) to\s+(.+?)[?.!]*$/i,
+    ];
+    for (const pattern of borderQuestions) {
+      const match = question.match(pattern);
+      if (match) return `${match[1].trim()} neighbouring countries`;
+    }
+    return question;
+  }
+
+  function normalizeFactualQuestion(text) {
     const question = text.trim();
     const wrappers = [
       /^(?:can|could|would) you (?:please )?(?:give me|tell me|show me)\s+(?:(?:a|an|the)\s+)?(?:(?:quick|brief|short)\s+)?(?:overview|summary|description|introduction)\s+(?:of|about)\s+/i,
@@ -421,16 +435,17 @@
         : { intent: "", score: 0 };
       let response = JSON.parse(window.pybotReply(value, semantic.intent || "", semantic.score || 0));
       const lookupText = response.lookup_query || (response.module === "conversation/unknown" && isFactualQuestion(value) ? value : "");
+      const relevanceQuestion = lookupText ? normalizeFactualQuestion(lookupText) : "";
       const lookupQuery = lookupText ? normalizeFactualLookupQuery(lookupText) : "";
       if (lookupQuery) {
         setThinking(true, "Looking up a cited answer…");
         try {
-          response = await lookupWikipedia(lookupQuery);
+          response = await lookupWikipedia(lookupQuery, relevanceQuestion || lookupQuery);
         } catch {
           response = {
             text: "I couldn't reach Wikipedia just now, so I don't have a cited answer for that question. You can retry the lookup.",
             module: "retrieval/wikipedia-error",
-            retry_query: lookupQuery,
+            retry_query: relevanceQuestion || lookupQuery,
           };
         }
       }
@@ -527,7 +542,7 @@
     }
     try {
       const go = new Go();
-      const binary = await fetch("./pybot.wasm?v=0.10.2");
+      const binary = await fetch("./pybot.wasm?v=0.10.3");
       if (!binary.ok) throw new Error("WebAssembly bundle is unavailable.");
       const result = await WebAssembly.instantiate(await binary.arrayBuffer(), go.importObject);
       void go.run(result.instance).catch(() => setReady(false, "Runtime failed to load."));
