@@ -295,11 +295,11 @@
       generator: "search",
       gsrsearch: question,
       gsrnamespace: "0",
-      gsrlimit: "3",
+      gsrlimit: "8",
       prop: "extracts",
       exintro: "1",
       explaintext: "1",
-      exsentences: "4",
+      exsentences: "6",
       format: "json",
       formatversion: "2",
       origin: "*",
@@ -312,9 +312,46 @@
     const data = await response.json();
     const pages = (data.query?.pages || []).filter((page) => page.extract && page.title)
       .sort((a, b) => a.index - b.index);
-    const page = pages[0];
-    if (!page) throw new Error("No sourced answer found");
-    const extract = String(page.extract).replace(/\s+/g, " ").trim().slice(0, 1000);
+    if (pages.length === 0) throw new Error("No sourced answer found");
+
+    const tokens = question.toLowerCase().match(/[\p{L}\p{N}]+/gu) || [];
+    const stopWords = new Set(["what", "who", "where", "when", "why", "which", "how", "is", "are", "was", "were", "do", "does", "did", "can", "could", "would", "the", "a", "an", "of", "in", "on", "to", "for", "and", "or", "me", "my", "you", "your", "about", "please"]);
+    const queryTerms = [...new Set(tokens.filter((token) => token.length > 2 && !stopWords.has(token)))];
+    const lexicalScores = pages.map((page) => {
+      if (queryTerms.length === 0) return 0;
+      const titleTerms = new Set(page.title.toLowerCase().match(/[\p{L}\p{N}]+/gu) || []);
+      const extractTerms = new Set(page.extract.toLowerCase().match(/[\p{L}\p{N}]+/gu) || []);
+      const matchedWeight = queryTerms.reduce((total, term) => total + (titleTerms.has(term) ? 2 : extractTerms.has(term) ? 1 : 0), 0);
+      return matchedWeight / (queryTerms.length * 2);
+    });
+    let semanticScores = null;
+    if (typeof window.pybotSemanticRankCandidates === "function") {
+      semanticScores = await window.pybotSemanticRankCandidates(question, pages.map((page) => `${page.title}. ${page.extract}`));
+    }
+    const maxIndex = Math.max(...pages.map((page, index) => Number.isFinite(page.index) ? page.index : index));
+    const page = pages.map((candidate, index) => {
+      const rank = Number.isFinite(candidate.index) ? candidate.index : index;
+      const searchScore = 1 - rank / (maxIndex + 1);
+      const semanticScore = semanticScores?.[index];
+      const score = semanticScore == null
+        ? searchScore * 0.8 + lexicalScores[index] * 0.2
+        : semanticScore * 0.7 + searchScore * 0.2 + lexicalScores[index] * 0.1;
+      return { candidate, score };
+    }).sort((a, b) => b.score - a.score)[0].candidate;
+    const sourceText = String(page.extract).replace(/\s+/g, " ").trim();
+    const sentences = splitExtractSentences(sourceText);
+    let answerSentences = sentences.slice(0, 3);
+    if (sentences.length > 1 && typeof window.pybotSemanticRankCandidates === "function") {
+      const sentenceScores = await window.pybotSemanticRankCandidates(question, sentences);
+      if (sentenceScores) {
+        answerSentences = sentenceScores.map((score, index) => ({ score, index }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, Math.min(3, sentences.length))
+          .sort((a, b) => a.index - b.index)
+          .map((item) => sentences[item.index]);
+      }
+    }
+    const extract = answerSentences.join(" ").slice(0, 1000);
     return {
       text: extract || `I found a Wikipedia page for ${page.title}, but it has no short introduction.`,
       module: "retrieval/wikipedia",
@@ -324,6 +361,14 @@
         url: `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title.replace(/ /g, "_"))}`,
       }],
     };
+  }
+
+  function splitExtractSentences(text) {
+    if (typeof Intl !== "undefined" && typeof Intl.Segmenter === "function") {
+      const segmenter = new Intl.Segmenter("en", { granularity: "sentence" });
+      return Array.from(segmenter.segment(text), (segment) => segment.segment.trim()).filter(Boolean);
+    }
+    return text.split(/(?<=[.!?])\s+(?=[A-Z0-9])/).map((sentence) => sentence.trim()).filter(Boolean);
   }
 
   function isFactualQuestion(text) {
@@ -338,6 +383,8 @@
       /^(?:can|could|would) you (?:please )?(?:give me|tell me|show me)\s+(?:(?:a|an|the)\s+)?(?:(?:quick|brief|short)\s+)?(?:overview|summary|description|introduction)\s+(?:of|about)\s+/i,
       /^(?:can|could|would) you (?:please )?tell me about\s+/i,
       /^(?:please\s+)?tell me about\s+/i,
+      /^(?:can|could|would) you (?:please )?(?:explain|describe|define|summarize)\s+/i,
+      /^(?:please\s+)?(?:explain|describe|define|summarize)\s+/i,
       /^(?:what(?: is|'s|’s)|who(?: is|'s|’s)|where(?: is|'s|’s))\s+(?:(?:the|a|an)\s+)?/i,
     ];
     for (const wrapper of wrappers) {
@@ -367,7 +414,8 @@
         ? await window.pybotSemanticClassify(value, context)
         : { intent: "", score: 0 };
       let response = JSON.parse(window.pybotReply(value, semantic.intent || "", semantic.score || 0));
-      const lookupQuery = response.lookup_query || (response.module === "conversation/unknown" && isFactualQuestion(value) ? normalizeFactualLookupQuery(value) : "");
+      const lookupText = response.lookup_query || (response.module === "conversation/unknown" && isFactualQuestion(value) ? value : "");
+      const lookupQuery = lookupText ? normalizeFactualLookupQuery(lookupText) : "";
       if (lookupQuery) {
         setThinking(true, "Looking up a cited answer…");
         try {
@@ -473,7 +521,7 @@
     }
     try {
       const go = new Go();
-      const binary = await fetch("./pybot.wasm?v=0.9.3");
+      const binary = await fetch("./pybot.wasm?v=0.10.0");
       if (!binary.ok) throw new Error("WebAssembly bundle is unavailable.");
       const result = await WebAssembly.instantiate(await binary.arrayBuffer(), go.importObject);
       void go.run(result.instance).catch(() => setReady(false, "Runtime failed to load."));

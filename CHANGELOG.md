@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.0 - 2026-11-21
+
+- Rank open-topic Wikipedia results and their lead sentences with the in-browser CPU transformer instead of trusting the first search result.
+- Broaden polite factual query cleanup and present PyBot as a general assistant for sourced facts, calculations, and Linux help.
+
 ## 0.9.3 - 2026-11-21
 
 - Normalize “what is the…” and similar entity question wrappers before Wikipedia search so direct fact questions rank the subject page over incidental phrase matches.

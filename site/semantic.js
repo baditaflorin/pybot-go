@@ -89,7 +89,7 @@
 
   async function getFactualConversations() {
     if (!factualConversationsPromise) {
-      factualConversationsPromise = fetch("./factual-conversations.json?v=0.9.3")
+      factualConversationsPromise = fetch("./factual-conversations.json?v=0.10.0")
         .then((response) => {
           if (!response.ok) throw new Error("Factual conversation examples are unavailable.");
           return response.json();
@@ -112,7 +112,7 @@
   }
 
   function readyMessage() {
-    return `CPU transformer ready · ${factualConversationCount} factual conversations · answers stay rule-based`;
+    return `CPU semantic search ready · open-topic facts · ${factualConversationCount} example conversations`;
   }
 
   async function getPrototypes(extractor) {
@@ -193,7 +193,21 @@
     }
   }
 
+  async function rankCandidates(query, candidates) {
+    if (!routerReady || !Array.isArray(candidates) || candidates.length === 0) return null;
+    try {
+      const extractor = await getExtractor();
+      const vectors = await embed(extractor, [query, ...candidates]);
+      const [queryVector, ...candidateVectors] = vectors;
+      return candidateVectors.map((candidate) => cosine(queryVector, candidate));
+    } catch (error) {
+      console.warn("PyBot semantic retrieval ranking unavailable; using Wikipedia search order.", error);
+      return null;
+    }
+  }
+
   window.pybotSemanticClassify = classify;
+  window.pybotSemanticRankCandidates = rankCandidates;
   window.pybotFactualConversationsReady = getFactualConversations();
   // Warm the model without blocking the rule-based chat from becoming usable.
   getExtractor().then(async (extractor) => {

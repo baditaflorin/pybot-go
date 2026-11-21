@@ -4,14 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="color-scheme" content="light">
-    <meta name="description" content="Try PyBot Go, a CPU-only assistant that solves small, explicit tasks without an LLM.">
+    <meta name="description" content="Try PyBot Go, a CPU-only assistant for general questions, calculations, Linux help, and cited factual answers.">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' blob: https://cdn.jsdelivr.net; style-src 'self'; connect-src 'self' https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://hf.co https://*.hf.co https://*.xethub.hf.co https://en.wikipedia.org; worker-src 'self' blob:; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'self'">
     <title>PyBot Go — Browser Lab</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./app.css">
     <script defer src="./wasm_exec.js"></script>
-    <script defer src="./semantic.js?v=0.9.3"></script>
-    <script defer src="./app.js?v=0.9.3"></script>
+    <script defer src="./semantic.js?v=0.10.0"></script>
+    <script defer src="./app.js?v=0.10.0"></script>
   </head>
   <body>
     <header class="topbar">
@@ -28,8 +28,8 @@
     <main class="layout">
       <section class="intro" aria-labelledby="page-title">
         <p class="eyebrow"><span class="eyebrow-line"></span> CPU-only · no LLM</p>
-        <h1 id="page-title">Practical Linux help.<br><span>Clear next steps.</span></h1>
-        <p class="intro-copy">Ask about Linux, geography, science, history, or general facts. PyBot links factual answers to Wikipedia and handles follow-ups in context. This tab remembers up to 24 turns. For Linux help, it starts with read-only checks. CPU only; no generative LLM or GPU.</p>
+        <h1 id="page-title">Ask about anything.<br><span>Get clear, sourced answers.</span></h1>
+        <p class="intro-copy">Ask general questions, work through calculations, or get Linux help. PyBot uses CPU-only semantic matching to find cited factual answers and keep follow-ups connected to the conversation. This tab remembers up to 24 turns. No generative LLM or GPU.</p>
         <div class="capability-row" aria-label="Capabilities">
           <span>Linux troubleshooting</span>
           <span>Safe diagnostics</span>
@@ -41,6 +41,7 @@
           <span>Age follow-ups</span>
           <span>Math and conversions</span>
           <span>Geography and general facts</span>
+          <span>Open-topic factual search</span>
           <span>Sourced answers</span>
         </div>
       </section>
