@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.0 - 2026-11-21
+
+- Add 100 natural two-turn factual conversations spanning geography, science, history, culture, and everyday knowledge.
+- Use their first questions and contextual follow-ups as CPU transformer routing examples; factual answers still come from cited Wikipedia extracts.
+- Resolve entity follow-ups by retaining the prior question and cited topic in the next Wikipedia search.
+- Bundle the examples with the browser site and show their count when the semantic router is ready.
+
 ## 0.8.1 - 2026-11-21
 
 - Add a 50-scenario conversation evaluation covering memory, follow-ups, calculations, Linux help, answer preferences, sources, and topic navigation.

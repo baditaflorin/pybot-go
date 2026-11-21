@@ -9,6 +9,8 @@
   const thinking = document.getElementById("thinking-indicator");
   const messageCounter = document.getElementById("message-counter");
   const promptCards = Array.from(document.querySelectorAll("[data-prompt]"));
+  const factualExampleSelect = document.getElementById("factual-example-select");
+  const factualExampleButton = document.getElementById("factual-example-button");
   const recentTurns = [];
   const conversation = [];
   const storageKey = "pybot-go-conversation-v2";
@@ -16,6 +18,8 @@
   let sending = false;
   let semanticMessage = "CPU language model loading…";
   let semanticState = "loading";
+  let factualExamples = [];
+  let factualExamplePhase = "question";
 
   function renderStatus(message, state = "ready") {
     const dot = status.querySelector(".status-dot");
@@ -32,6 +36,47 @@
     resetButton.disabled = !ready || sending;
     exportButton.disabled = !ready || conversation.length === 0;
     promptCards.forEach((card) => { card.disabled = !ready; });
+    updateFactualExampleControls();
+  }
+
+  function updateFactualExampleControls() {
+    if (!factualExampleSelect || !factualExampleButton) return;
+    const selected = factualExampleSelect.value;
+    factualExampleSelect.disabled = !runtimeReady || sending || factualExamples.length === 0;
+    factualExampleButton.disabled = !runtimeReady || sending || !selected;
+    factualExampleButton.textContent = factualExamplePhase === "follow_up" ? "Ask follow-up" : "Ask question";
+  }
+
+  async function populateFactualExamples() {
+    if (!factualExampleSelect || !window.pybotFactualConversationsReady) return;
+    factualExamples = await window.pybotFactualConversationsReady;
+    const categories = [
+      ["geography", "Geography"],
+      ["science", "Science and nature"],
+      ["history", "History"],
+      ["culture", "Culture and language"],
+      ["general", "Everyday facts"],
+    ];
+    factualExampleSelect.replaceChildren(new Option("Choose a conversation…", ""));
+    for (const [category, label] of categories) {
+      const examples = factualExamples.filter((entry) => entry.category === category);
+      if (examples.length === 0) continue;
+      const group = document.createElement("optgroup");
+      group.label = `${label} (${examples.length})`;
+      examples.forEach((entry) => {
+        const option = document.createElement("option");
+        option.value = entry.id;
+        option.textContent = `${entry.topic} — ${entry.question}`;
+        group.append(option);
+      });
+      factualExampleSelect.append(group);
+    }
+    updateFactualExampleControls();
+  }
+
+  function resetFactualExamplePhase() {
+    factualExamplePhase = "question";
+    updateFactualExampleControls();
   }
 
   window.addEventListener("pybot-semantic-status", (event) => {
@@ -292,6 +337,7 @@
     prompt.value = "";
     resizePrompt();
     sending = true;
+    updateFactualExampleControls();
     sendButton.disabled = true;
     resetButton.disabled = true;
     setThinking(true, "Matching your question to the conversation…");
@@ -339,6 +385,7 @@
     setThinking(false);
     sendButton.disabled = !runtimeReady;
     resetButton.disabled = !runtimeReady;
+    updateFactualExampleControls();
     prompt.focus();
   }
 
@@ -349,6 +396,7 @@
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
+    resetFactualExamplePhase();
     sendMessage(prompt.value);
   });
 
@@ -367,13 +415,29 @@
   });
 
   promptCards.forEach((card) => {
-    card.addEventListener("click", () => sendMessage(card.dataset.prompt || ""));
+    card.addEventListener("click", () => {
+      resetFactualExamplePhase();
+      sendMessage(card.dataset.prompt || "");
+    });
+  });
+
+  factualExampleSelect?.addEventListener("change", resetFactualExamplePhase);
+  factualExampleButton?.addEventListener("click", () => {
+    const example = factualExamples.find((entry) => entry.id === factualExampleSelect.value);
+    if (!example) return;
+    const isFollowUp = factualExamplePhase === "follow_up";
+    const message = isFollowUp ? example.follow_up : example.question;
+    if (!isFollowUp) factualExamplePhase = "follow_up";
+    else factualExamplePhase = "question";
+    updateFactualExampleControls();
+    sendMessage(message);
   });
 
   resetButton.addEventListener("click", () => {
     if (typeof window.pybotReset === "function") window.pybotReset();
     recentTurns.length = 0;
     conversation.length = 0;
+    resetFactualExamplePhase();
     try { sessionStorage.removeItem(storageKey); } catch { /* Memory still resets for this page load. */ }
     exportButton.disabled = true;
     messages.replaceChildren();
@@ -393,7 +457,7 @@
     }
     try {
       const go = new Go();
-      const binary = await fetch("./pybot.wasm?v=0.8.1");
+      const binary = await fetch("./pybot.wasm?v=0.9.0");
       if (!binary.ok) throw new Error("WebAssembly bundle is unavailable.");
       const result = await WebAssembly.instantiate(await binary.arrayBuffer(), go.importObject);
       void go.run(result.instance).catch(() => setReady(false, "Runtime failed to load."));
@@ -418,5 +482,6 @@
   }
 
   setReady(false, "Loading browser runtime…");
+  void populateFactualExamples();
   startRuntime();
 })();

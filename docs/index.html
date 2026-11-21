@@ -10,8 +10,8 @@
     <link rel="icon" href="./favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="./app.css">
     <script defer src="./wasm_exec.js"></script>
-    <script defer src="./semantic.js?v=0.8.1"></script>
-    <script defer src="./app.js?v=0.8.1"></script>
+    <script defer src="./semantic.js?v=0.9.0"></script>
+    <script defer src="./app.js?v=0.9.0"></script>
   </head>
   <body>
     <header class="topbar">
@@ -29,7 +29,7 @@
       <section class="intro" aria-labelledby="page-title">
         <p class="eyebrow"><span class="eyebrow-line"></span> CPU-only · no LLM</p>
         <h1 id="page-title">Practical Linux help.<br><span>Clear next steps.</span></h1>
-        <p class="intro-copy">Ask about Linux services, logs, storage, networking, permissions, SSH, and packages. PyBot explains commands, starts with read-only diagnostics, and links its manuals. This tab remembers up to 24 turns and lets you return to earlier topics. Set an answer style, or ask for Linux steps one at a time. CPU only; no generative LLM or GPU.</p>
+        <p class="intro-copy">Ask about Linux, geography, science, history, or general facts. PyBot links factual answers to Wikipedia and handles follow-ups in context. This tab remembers up to 24 turns. For Linux help, it starts with read-only checks. CPU only; no generative LLM or GPU.</p>
         <div class="capability-row" aria-label="Capabilities">
           <span>Linux troubleshooting</span>
           <span>Safe diagnostics</span>
@@ -40,6 +40,7 @@
           <span>Answer preferences</span>
           <span>Age follow-ups</span>
           <span>Math and conversions</span>
+          <span>Geography and general facts</span>
           <span>Sourced answers</span>
         </div>
       </section>
@@ -127,6 +128,17 @@
               <span class="prompt-arrow" aria-hidden="true">→</span>
             </button>
           </div>
+          <details class="fact-example-browser">
+            <summary>Browse 100 factual conversations</summary>
+            <label for="factual-example-select">Choose a two-turn example</label>
+            <div class="fact-example-controls">
+              <select id="factual-example-select" disabled>
+                <option value="">Loading examples…</option>
+              </select>
+              <button id="factual-example-button" type="button" disabled>Ask question</button>
+            </div>
+            <p>Ask the first question, then click again to try its contextual follow-up.</p>
+          </details>
           <p class="try-note"><span class="note-check" aria-hidden="true">✓</span> Linux help comes from a curated local library with source links. Include your distro/version and exact error for tailored steps. Say “keep it brief,” “explain for a beginner,” or “one step at a time.” PyBot does not run commands; it starts with read-only checks and asks before risky changes.</p>
         </aside>
       </section>

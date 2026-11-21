@@ -14,25 +14,26 @@ type factKey struct {
 }
 
 type conversationMemory struct {
-	turn              int
-	facts             map[factKey]Fact
-	factOrder         []factKey
-	history           []ConversationTurn
-	lastUserText      string
-	lastResponse      Response
-	lastLinuxQuestion string
-	lastExternalTopic string
-	nextGenericPerson int
-	lastPersonSubject string
-	lastKnowledgeID   string
-	lastKnowledgeTurn int
-	preferences       conversationPreferences
-	preferenceAck     string
-	topics            []conversationTopic
-	guidedSteps       []string
-	guidedIndex       int
-	guidedSources     []Source
-	pendingTopicQuery string
+	turn                 int
+	facts                map[factKey]Fact
+	factOrder            []factKey
+	history              []ConversationTurn
+	lastUserText         string
+	lastResponse         Response
+	lastLinuxQuestion    string
+	lastExternalTopic    string
+	lastExternalQuestion string
+	nextGenericPerson    int
+	lastPersonSubject    string
+	lastKnowledgeID      string
+	lastKnowledgeTurn    int
+	preferences          conversationPreferences
+	preferenceAck        string
+	topics               []conversationTopic
+	guidedSteps          []string
+	guidedIndex          int
+	guidedSources        []Source
+	pendingTopicQuery    string
 }
 
 const conversationHistoryLimit = 24
@@ -191,8 +192,10 @@ func (m *conversationMemory) rememberResponse(question string, response Response
 		m.lastResponse = response
 		if topic := externalTopic(response); topic != "" {
 			m.lastExternalTopic = topic
+			m.lastExternalQuestion = question
 		} else {
 			m.lastExternalTopic = ""
+			m.lastExternalQuestion = ""
 		}
 	}
 	m.replaceTopicResponse(question, response)

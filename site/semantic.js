@@ -52,6 +52,8 @@
 
   let extractorPromise;
   let prototypePromise;
+  let factualConversationsPromise;
+  let factualConversationCount = 0;
   let routerReady = false;
 
   function setStatus(message, state = "loading") {
@@ -85,16 +87,55 @@
     return rows.map((row) => row.map(Number));
   }
 
+  async function getFactualConversations() {
+    if (!factualConversationsPromise) {
+      factualConversationsPromise = fetch("./factual-conversations.json?v=0.9.0")
+        .then((response) => {
+          if (!response.ok) throw new Error("Factual conversation examples are unavailable.");
+          return response.json();
+        })
+        .then((entries) => {
+          if (!Array.isArray(entries)) throw new Error("Factual conversation examples are invalid.");
+          const valid = entries.filter((entry) => entry &&
+            typeof entry.question === "string" && entry.question.trim() &&
+            typeof entry.follow_up === "string" && entry.follow_up.trim());
+          factualConversationCount = valid.length;
+          return valid;
+        })
+        .catch((error) => {
+          factualConversationsPromise = undefined;
+          console.warn("PyBot factual examples unavailable; using the built-in examples only.", error);
+          return [];
+        });
+    }
+    return factualConversationsPromise;
+  }
+
+  function readyMessage() {
+    return `CPU transformer ready · ${factualConversationCount} factual conversations · answers stay rule-based`;
+  }
+
   async function getPrototypes(extractor) {
     if (!prototypePromise) {
-      const labels = Object.keys(intentExamples);
-      const texts = labels.flatMap((label) => intentExamples[label]);
+      const conversations = await getFactualConversations();
+      const examples = {
+        ...intentExamples,
+        knowledge_question: [
+          ...intentExamples.knowledge_question,
+          ...conversations.map((conversation) => conversation.question),
+        ],
+        context_followup: [
+          ...intentExamples.context_followup,
+          ...conversations.map((conversation) => conversation.follow_up),
+        ],
+      };
+      const labels = Object.keys(examples);
+      const texts = labels.flatMap((label) => examples[label]);
       prototypePromise = embed(extractor, texts).then((vectors) => {
         const result = {};
         let index = 0;
         labels.forEach((label) => {
-          const examples = intentExamples[label].map(() => vectors[index++]);
-          result[label] = examples;
+          result[label] = examples[label].map(() => vectors[index++]);
         });
         return result;
       }).catch((error) => {
@@ -111,7 +152,7 @@
 
   function shouldUseContext(text) {
     const words = text.trim().split(/\s+/).length;
-    return words <= 12 && /\b(it|they|them|he|she|him|her|that|those|these|there|same|again|previous|more|why|source|command|step|safe|next|what about|and if|where does|back to|return to|topics|live there|second|third)\b/i.test(text);
+    return words <= 12 && /\b(it|its|they|their|them|he|she|him|her|that|those|these|there|same|again|previous|more|why|source|command|step|safe|next|what about|and if|where does|back to|return to|topics|live there|second|third)\b/i.test(text);
   }
 
   function cosine(vector, prototype) {
@@ -143,7 +184,7 @@
       const margin = best.score - (next?.score ?? 0);
       const factualQuestion = isQuestion(text);
       const accepted = best.score >= threshold && (margin >= 0.015 || (best.intent === "knowledge_question" && factualQuestion));
-      setStatus("CPU transformer ready · answers stay rule-based", "ready");
+      setStatus(readyMessage(), "ready");
       return accepted ? { intent: best.intent, score: best.score } : { intent: "", score: 0 };
     } catch (error) {
       console.warn("PyBot semantic model unavailable; using local rules only.", error);
@@ -153,11 +194,12 @@
   }
 
   window.pybotSemanticClassify = classify;
+  window.pybotFactualConversationsReady = getFactualConversations();
   // Warm the model without blocking the rule-based chat from becoming usable.
   getExtractor().then(async (extractor) => {
     await getPrototypes(extractor);
     routerReady = true;
-    setStatus("CPU transformer ready · answers stay rule-based", "ready");
+    setStatus(readyMessage(), "ready");
   })
     .catch(() => setStatus("Rules ready · semantic model unavailable", "error"));
 })();

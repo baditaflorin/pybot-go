@@ -161,6 +161,15 @@ h1 span { color: var(--green); }
 .prompt-card small { color: #89948c; font-size: 9px; }
 .prompt-arrow { color: #a5afa7; font-size: 14px; transition: transform .15s ease, color .15s ease; }
 .prompt-card:hover .prompt-arrow { color: var(--green); transform: translateX(2px); }
+.fact-example-browser { margin-top: 13px; border: 1px solid #e9eee8; border-radius: 11px; background: #fbfdf9; }
+.fact-example-browser summary { padding: 11px 12px; color: #52665a; font-size: 10px; font-weight: 700; cursor: pointer; }
+.fact-example-browser[open] summary { border-bottom: 1px solid #e9eee8; }
+.fact-example-browser label { display: block; margin: 11px 11px 6px; color: #7c8980; font-size: 9px; }
+.fact-example-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 7px; padding: 0 10px; }
+.fact-example-controls select { min-width: 0; border: 1px solid #dfe7dc; border-radius: 7px; padding: 8px 7px; color: #4b5d51; background: #fff; font: inherit; font-size: 9px; }
+.fact-example-controls button { border: 0; border-radius: 7px; padding: 0 9px; color: #ecf8e7; background: var(--green); font-size: 9px; font-weight: 680; cursor: pointer; }
+.fact-example-controls button:disabled, .fact-example-controls select:disabled { opacity: .55; cursor: not-allowed; }
+.fact-example-browser > p { margin: 8px 11px 11px; color: #89948c; font-size: 9px; line-height: 1.45; }
 .try-note { display: flex; gap: 7px; margin: 15px 2px 0; color: #849087; font-size: 9px; line-height: 1.55; }
 .note-check { flex: 0 0 15px; width: 15px; height: 15px; display: grid; place-items: center; margin-top: 1px; border-radius: 50%; color: #4d805b; background: #e9f3e7; font-size: 9px; font-weight: 800; }
 
